@@ -9,29 +9,29 @@ import { UserAccount, UserRole } from "../types";
 export const DEMO_USERS: UserAccount[] = [
   {
     id: "usr-1",
-    name: "Dra. Heloísa Souza",
-    email: "heloisa.souza@petronexa.com.br",
+    name: "Administrador de Meio Ambiente",
+    email: "admin@nexagreen.com",
     role: "Administrador",
-    title: "Diretora de EHS & ESG",
+    title: "Diretor de EHS & ESG",
     department: "Corporate Compliance",
     tenantId: "tenant-1"
   },
   {
     id: "usr-2",
-    name: "Eng. Carlos Mendes",
-    email: "carlos.mendes@petronexa.com.br",
+    name: "Engenheiro Ambiental de Campo",
+    email: "campo@nexagreen.com",
     role: "Técnico",
-    title: "Engenheiro Ambiental Pleno",
+    title: "Engenheiro de Operações",
     department: "Operações de Campo",
     tenantId: "tenant-1"
   },
   {
     id: "usr-3",
-    name: "Dr. Roberto Alves",
-    email: "roberto.alves@ibama.gov.br",
+    name: "Auditor Técnico de Compliance",
+    email: "auditoria@nexagreen.com",
     role: "Auditor",
-    title: "Auditor Fiscal Ambiental - IBAMA",
-    department: "Órgão Regulador / Fiscalização",
+    title: "Auditor de Processos e ESG",
+    department: "Fiscalização e Governança",
     tenantId: "tenant-1"
   }
 ];

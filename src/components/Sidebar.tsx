@@ -99,7 +99,7 @@ export default function Sidebar({
             </div>
             <div>
               <h1 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
-                NexaAmbient
+                NexaGreen
               </h1>
               <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 tracking-wider uppercase">
                 Enterprise Suite

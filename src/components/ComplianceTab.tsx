@@ -36,7 +36,7 @@ export default function ComplianceTab({
   onUpdateActionPlanStatus,
   isDbUpdating
 }: ComplianceTabProps) {
-  const tenantAudits = audits.filter(a => a.tenantId === tenant.id);
+  const tenantAudits = (audits || []).filter(a => a && a.tenantId === tenant?.id);
 
   // States
   const [selectedRiskCategory, setSelectedRiskCategory] = useState<string | null>(null);
@@ -47,7 +47,7 @@ export default function ComplianceTab({
   // Form states for new Action Plan
   const [planTitle, setPlanTitle] = useState("");
   const [planDesc, setPlanDesc] = useState("");
-  const [planAssigned, setPlanAssigned] = useState("Ing. Amanda Rezende");
+  const [planAssigned, setPlanAssigned] = useState("Eng. Responsável Técnico");
   const [planDueDate, setPlanDueDate] = useState("2026-08-30");
   const [planPriority, setPlanPriority] = useState<"Low" | "Medium" | "High">("Medium");
 
@@ -78,8 +78,8 @@ export default function ComplianceTab({
 
   // Filtered risks based on matrix interaction
   const filteredRisks = selectedRiskCategory 
-    ? risks.filter(r => r.category === selectedRiskCategory)
-    : risks;
+    ? (risks || []).filter(r => r && r.category === selectedRiskCategory)
+    : (risks || []);
 
   return (
     <div className="p-6 lg:p-8 space-y-8" id="compliance-module-container">
@@ -247,16 +247,16 @@ export default function ComplianceTab({
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <h4 className="text-xs font-extrabold text-slate-500 dark:text-slate-450 uppercase tracking-widest">Planos de Ação Preventivos / Corretivos</h4>
-                          <span className="text-xs text-slate-500">{aud.actionPlans.length} planos ativos</span>
+                          <span className="text-xs text-slate-500">{(aud.actionPlans || []).length} planos ativos</span>
                         </div>
 
-                        {aud.actionPlans.length === 0 ? (
+                        {(aud.actionPlans || []).length === 0 ? (
                           <div className="p-4 bg-emerald-50/20 rounded-xl border border-dashed border-emerald-200 text-center text-xs text-emerald-700">
                             Sem não-conformidades ativas! Todos os passivos da fiscalização foram solucionados.
                           </div>
                         ) : (
                           <div className="space-y-2.5">
-                            {aud.actionPlans.map(plan => (
+                            {(aud.actionPlans || []).map(plan => (
                               <div key={plan.id} className="p-4 border border-slate-150 dark:border-slate-850 rounded-xl bg-white dark:bg-slate-900/40 flex flex-col sm:flex-row justify-between gap-3 text-xs shadow-sm">
                                 <div className="space-y-1">
                                   <div className="flex items-center space-x-2">
@@ -318,7 +318,7 @@ export default function ComplianceTab({
                               required
                               value={planAssigned}
                               onChange={(e) => setPlanAssigned(e.target.value)}
-                              placeholder="Ex: Dr. Carlos Eduardo Malta"
+                              placeholder="Ex: Coordenador de Meio Ambiente"
                               className="w-full text-xs px-3 py-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-lg text-slate-900 dark:text-white"
                             />
                           </div>

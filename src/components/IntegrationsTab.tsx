@@ -133,8 +133,8 @@ export default function IntegrationsTab({
   ]);
   const [formHeadersText, setFormHeadersText] = useState("{\n  \"Content-Type\": \"application/json\"\n}");
 
-  const tenantWebhooks = webhooks.filter((w) => w.tenantId === tenant.id);
-  const tenantLogs = webhookLogs.filter((l) => l.tenantId === tenant.id);
+  const tenantWebhooks = (webhooks || []).filter((w) => w && w.tenantId === tenant?.id);
+  const tenantLogs = (webhookLogs || []).filter((l) => l && l.tenantId === tenant?.id);
 
   const handleCopySecret = (secret: string) => {
     navigator.clipboard.writeText(secret);
@@ -638,10 +638,10 @@ X-Nexa-Event: condition.overdue`}</pre>
               <pre className="text-slate-300">{`{
   "event": "condition.overdue",
   "webhookId": "wh-1",
-  "system": "NexaAmbient Enterprise Suite",
+  "system": "NexaGreen Enterprise Suite",
   "tenant": {
     "id": "tenant-1",
-    "name": "PetroNexa S.A.",
+    "name": "NexaGreen Industrial S.A.",
     "cnpj": "12.345.678/0001-90"
   },
   "sampleData": {

@@ -50,19 +50,19 @@ export default function ReportsTab({
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Filter data based on active tenant
-  const tenantLicenses = licenses.filter(l => l.tenantId === tenant.id);
-  const tenantParams = monitoringParams.filter(p => p.tenantId === tenant.id);
-  const tenantKpis = esgKpis.filter(k => k.tenantId === tenant.id);
+  const tenantLicenses = (licenses || []).filter(l => l && l.tenantId === tenant?.id);
+  const tenantParams = (monitoringParams || []).filter(p => p && p.tenantId === tenant?.id);
+  const tenantKpis = (esgKpis || []).filter(k => k && k.tenantId === tenant?.id);
 
   // Apply visual status filters for previews
   const getFilteredLicenses = () => {
     if (statusFilter === "all") return tenantLicenses;
-    return tenantLicenses.filter(l => l.status.toLowerCase() === statusFilter.toLowerCase());
+    return tenantLicenses.filter(l => l && l.status && l.status.toLowerCase() === statusFilter.toLowerCase());
   };
 
   const getFilteredParams = () => {
     if (statusFilter === "all") return tenantParams;
-    return tenantParams.filter(p => p.status.toLowerCase() === statusFilter.toLowerCase());
+    return tenantParams.filter(p => p && p.status && p.status.toLowerCase() === statusFilter.toLowerCase());
   };
 
   const getFilteredKpis = () => {
@@ -95,8 +95,8 @@ export default function ReportsTab({
         csvContent += "Numero da Licenca;Processo;Orgao Emissor;Tipo;Data de Emissao;Data de Vencimento;Status;Qtd Condicionantes;Condicionantes Pendentes\n";
         
         getFilteredLicenses().forEach(l => {
-          const totalCond = l.conditions.length;
-          const pendingCond = l.conditions.filter(c => c.status === "Pending").length;
+          const totalCond = (l.conditions || []).length;
+          const pendingCond = (l.conditions || []).filter(c => c && c.status === "Pending").length;
           csvContent += `"${l.licenseNumber}";"${l.processNumber}";"${l.issuer}";"${l.type}";"${l.issueDate}";"${l.dueDate}";"${l.status}";${totalCond};${pendingCond}\n`;
         });
       } else if (selectedReport === "monitoring") {
@@ -647,7 +647,7 @@ export default function ReportsTab({
                             <td className="py-2.5 px-3">{l.issuer}</td>
                             <td className="py-2.5 px-3 font-semibold text-emerald-700">{l.type}</td>
                             <td className="py-2.5 px-3 text-center">{new Date(l.dueDate).toLocaleDateString("pt-BR")}</td>
-                            <td className="py-2.5 px-3 text-right font-mono">{l.conditions.length} ({l.conditions.filter(c => c.status === "Pending").length} pend.)</td>
+                            <td className="py-2.5 px-3 text-right font-mono">{(l.conditions || []).length} ({(l.conditions || []).filter(c => c && c.status === "Pending").length} pend.)</td>
                             <td className="py-2.5 px-3 text-right">
                               <span className={`font-bold uppercase text-[9px] ${l.status === "Active" ? "text-emerald-600" : "text-amber-500"}`}>{l.status}</span>
                             </td>
@@ -717,16 +717,16 @@ export default function ReportsTab({
               </div>
 
               <div className="text-right text-[10px] text-slate-500 space-y-1">
-                <p className="font-semibold text-slate-700">Dra. Heloísa Souza</p>
-                <p>Diretora de Meio Ambiente e Sustentabilidade</p>
-                <p className="font-mono text-[9px] text-slate-400">CREA-SP: 506.145.289-9</p>
+                <p className="font-semibold text-slate-700">Gestor de Meio Ambiente</p>
+                <p>Diretoria de Meio Ambiente e Sustentabilidade</p>
+                <p className="font-mono text-[9px] text-slate-400">Responsabilidade Técnica Ativa</p>
               </div>
 
             </div>
 
             {/* Print Footer */}
             <div className="text-center text-[8px] text-slate-400 font-mono pt-4 border-t border-dashed border-slate-150">
-              Documento público de livre consulta para o órgão auditor brasileiro. Autenticidade verificável através do portal NexaAmbient com a chave SHA de assinatura.
+              Documento público de livre consulta para o órgão auditor regulador. Autenticidade verificável através do portal NexaGreen com a chave SHA de assinatura.
             </div>
 
           </div>

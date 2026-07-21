@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Settings, 
   X, 
@@ -20,7 +20,16 @@ import {
   HelpCircle, 
   ExternalLink,
   Lock,
-  Layers
+  Layers,
+  Download,
+  Upload,
+  Clock,
+  RefreshCw,
+  FileJson,
+  Save,
+  HardDrive,
+  CheckCircle2,
+  AlertTriangle
 } from "lucide-react";
 import { useAuth, DEMO_USERS } from "../context/AuthContext";
 
@@ -32,6 +41,20 @@ interface SettingsModalProps {
   onResetDb: () => void;
 }
 
+interface BackupItem {
+  filename: string;
+  sizeBytes: number;
+  mtime: string;
+  meta?: {
+    appName?: string;
+    version?: string;
+    timestamp?: string;
+    reason?: string;
+    tenantsCount?: number;
+    licensesCount?: number;
+  };
+}
+
 export default function SettingsModal({
   isOpen,
   onClose,
@@ -40,13 +63,107 @@ export default function SettingsModal({
   onResetDb
 }: SettingsModalProps) {
   const { currentUser, switchUser, getRoleBadgeColor } = useAuth();
-  const [activeTab, setActiveTab] = useState<"general" | "rbac" | "api" | "aistudio">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "rbac" | "api" | "backup" | "aistudio">("general");
 
   // Local Settings States
   const [language, setLanguage] = useState("pt-BR");
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [pushAlerts, setPushAlerts] = useState(true);
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  // Backup Engine States
+  const [backupsList, setBackupsList] = useState<BackupItem[]>([]);
+  const [lastAutoBackup, setLastAutoBackup] = useState<string | null>(null);
+  const [isBackupLoading, setIsBackupLoading] = useState(false);
+  const [backupFeedback, setBackupFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  useEffect(() => {
+    if (isOpen && activeTab === "backup") {
+      fetchBackups();
+    }
+  }, [isOpen, activeTab]);
+
+  const fetchBackups = async () => {
+    setIsBackupLoading(true);
+    try {
+      const res = await fetch("/api/db/backups");
+      if (res.ok) {
+        const data = await res.json();
+        setBackupsList(data.backups || []);
+        setLastAutoBackup(data.lastAutoBackupTimestamp || null);
+      }
+    } catch (err) {
+      console.error("Erro ao listar backups:", err);
+    } finally {
+      setIsBackupLoading(false);
+    }
+  };
+
+  const handleExportJson = () => {
+    window.open("/api/db/export", "_blank");
+    setBackupFeedback({ type: "success", text: "Download do arquivo de backup JSON iniciado com sucesso!" });
+    setTimeout(() => setBackupFeedback(null), 4000);
+  };
+
+  const handleTriggerManualBackup = async () => {
+    setIsBackupLoading(true);
+    try {
+      const res = await fetch("/api/db/backup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: "Snapshot Manual Solicitado na Interface" }),
+      });
+      if (res.ok) {
+        setBackupFeedback({ type: "success", text: "Novo snapshot de backup criado e armazenado no servidor!" });
+        await fetchBackups();
+      } else {
+        setBackupFeedback({ type: "error", text: "Erro ao gerar backup no servidor." });
+      }
+    } catch (err) {
+      setBackupFeedback({ type: "error", text: "Erro de conexão ao solicitar backup." });
+    } finally {
+      setIsBackupLoading(false);
+      setTimeout(() => setBackupFeedback(null), 4000);
+    }
+  };
+
+  const handleRestoreJsonFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!confirm(`Deseja restaurar o banco de dados a partir do arquivo "${file.name}"? Esta ação atualizará o estado atual.`)) {
+      e.target.value = "";
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const dbPayload = parsed.db || parsed;
+
+      const res = await fetch("/api/db/restore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dbPayload),
+      });
+
+      if (res.ok) {
+        setBackupFeedback({ type: "success", text: "Banco de dados restaurado com sucesso! Recarregando os dados..." });
+        await fetchBackups();
+        setTimeout(() => {
+          window.location.reload();
+        }, 1200);
+      } else {
+        const errData = await res.json();
+        setBackupFeedback({ type: "error", text: errData.error || "Erro ao processar arquivo de restauração." });
+      }
+    } catch (err) {
+      setBackupFeedback({ type: "error", text: "Arquivo JSON inválido ou corrompido." });
+    } finally {
+      e.target.value = "";
+      setTimeout(() => setBackupFeedback(null), 4000);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -119,6 +236,18 @@ export default function SettingsModal({
           >
             <Key className="h-4 w-4" />
             <span>Chaves de API & Servidor</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("backup")}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 whitespace-nowrap cursor-pointer ${
+              activeTab === "backup"
+                ? "bg-slate-900 dark:bg-emerald-600 text-white shadow"
+                : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            <HardDrive className="h-4 w-4 text-emerald-500" />
+            <span>Backup & Banco de Dados</span>
           </button>
 
           <button
@@ -282,44 +411,142 @@ export default function SettingsModal({
             </div>
           )}
 
-          {/* TAB 3: API & SERVIDOR */}
-          {activeTab === "api" && (
+          {/* TAB 4: BACKUP & RESILIÊNCIA */}
+          {activeTab === "backup" && (
             <div className="space-y-6">
               
-              <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 text-white space-y-3">
+              {/* Routine Banner */}
+              <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-emerald-400 font-bold font-mono text-[11px] uppercase">Servidor Express Backend</span>
-                  <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded border border-emerald-500/40">
-                    HTTP 200 OK
+                  <div className="flex items-center space-x-2.5">
+                    <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30">
+                      <Clock className="h-5 w-5 animate-pulse" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm text-white">Rotina Periódica de Backup Automático</h3>
+                      <p className="text-[11px] text-slate-400">Snapshot preventivo a cada 30 minutos em diretório isolado do servidor</p>
+                    </div>
+                  </div>
+                  <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-full font-bold font-mono text-[10px] flex items-center space-x-1">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span>MOTOR ATIVO</span>
                   </span>
                 </div>
-                <p className="text-slate-300 text-xs">
-                  O aplicativo está rodando com um servidor backend TypeScript unificado na porta 3000 simulando o barramento de dados e conectores de ERPs.
-                </p>
+
+                {lastAutoBackup && (
+                  <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+                    <span>Último snapshot registrado:</span>
+                    <span className="font-mono text-emerald-400 font-semibold">{new Date(lastAutoBackup).toLocaleString('pt-BR')}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
-                <span className="font-bold text-slate-800 dark:text-slate-200 block text-xs">
-                  Integração com Inteligência Artificial Gemini API:
-                </span>
-                <p className="text-slate-500 text-xs">
-                  A chave de API do Gemini (<code>GEMINI_API_KEY</code>) é gerenciada em ambiente seguro no servidor.
-                </p>
-              </div>
+              {backupFeedback && (
+                <div className={`p-3.5 rounded-2xl border font-semibold text-xs flex items-center space-x-2.5 ${
+                  backupFeedback.type === "success" 
+                    ? "bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800" 
+                    : "bg-red-50 text-red-800 dark:bg-red-950/60 dark:text-red-300 border-red-200 dark:border-red-800"
+                }`}>
+                  {backupFeedback.type === "success" ? (
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  ) : (
+                    <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+                  )}
+                  <span>{backupFeedback.text}</span>
+                </div>
+              )}
 
-              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                <span className="text-slate-500 text-xs">Reiniciar dados padrão do sistema:</span>
+              {/* Quick Actions Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <button
-                  onClick={() => {
-                    if (confirm("Resetar todo o banco de dados simulado para o estado inicial?")) {
-                      onResetDb();
-                      onClose();
-                    }
-                  }}
-                  className="bg-red-50 hover:bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300 border border-red-200 dark:border-red-800 px-3.5 py-2 rounded-xl font-bold cursor-pointer transition-all"
+                  type="button"
+                  onClick={handleExportJson}
+                  className="p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500/60 rounded-2xl text-left transition-all group cursor-pointer space-y-2"
                 >
-                  Resetar Banco de Dados
+                  <div className="p-2 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-xl w-fit group-hover:scale-105 transition-transform">
+                    <Download className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-white text-xs">Exportar JSON Seguro</h4>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">Baixar cópia do DBState completo para arquivo local</p>
+                  </div>
                 </button>
+
+                <button
+                  type="button"
+                  onClick={handleTriggerManualBackup}
+                  disabled={isBackupLoading}
+                  className="p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500/60 rounded-2xl text-left transition-all group cursor-pointer space-y-2 disabled:opacity-50"
+                >
+                  <div className="p-2 bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded-xl w-fit group-hover:scale-105 transition-transform">
+                    <Save className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-white text-xs">Snapshot Manual</h4>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">Gerar cópia imediata no servidor sem aguardar ciclo</p>
+                  </div>
+                </button>
+
+                <label className="p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500/60 rounded-2xl text-left transition-all group cursor-pointer space-y-2 block">
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleRestoreJsonFile}
+                    className="hidden"
+                  />
+                  <div className="p-2 bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400 rounded-xl w-fit group-hover:scale-105 transition-transform">
+                    <Upload className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-white text-xs">Restaurar JSON</h4>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">Carregar e restaurar o estado a partir de um backup</p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Backups List */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center space-x-1.5">
+                    <Database className="h-4 w-4 text-emerald-500" />
+                    <span>Snapshots Salvos no Servidor ({backupsList.length})</span>
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={fetchBackups}
+                    className="p-1.5 text-slate-500 hover:text-slate-900 dark:hover:text-white rounded-lg transition-colors cursor-pointer"
+                    title="Atualizar Lista"
+                  >
+                    <RefreshCw className={`h-3.5 w-3.5 ${isBackupLoading ? "animate-spin" : ""}`} />
+                  </button>
+                </div>
+
+                <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800/60 max-h-48 overflow-y-auto">
+                  {backupsList.length === 0 ? (
+                    <div className="p-6 text-center text-slate-400 text-xs">
+                      Nenhum backup encontrado no repositório local.
+                    </div>
+                  ) : (
+                    backupsList.map((item, idx) => (
+                      <div key={idx} className="p-3 bg-white dark:bg-slate-900/50 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                        <div className="flex items-center space-x-3">
+                          <FileJson className="h-4 w-4 text-emerald-500 shrink-0" />
+                          <div>
+                            <span className="font-mono font-bold text-slate-800 dark:text-slate-200 text-[11px] block">{item.filename}</span>
+                            <span className="text-[10px] text-slate-400 font-sans block">
+                              {item.meta?.reason || "Backup do Sistema"} • {new Date(item.mtime).toLocaleString('pt-BR')}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400 font-semibold block">
+                            {(item.sizeBytes / 1024).toFixed(1)} KB
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
 
             </div>
@@ -360,7 +587,7 @@ export default function SettingsModal({
         {/* Modal Footer */}
         <div className="p-4 bg-slate-50 dark:bg-slate-950/50 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <p className="text-[10px] text-slate-400 font-semibold">
-            NexaAmbient Enterprise v2.4 • Porto de Tubarão & Bacia de Santos
+            NexaGreen Enterprise v3.0 • Gestão Ambiental Corporativa
           </p>
           <button
             onClick={handleSaveSettings}

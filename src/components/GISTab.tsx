@@ -45,32 +45,189 @@ export default function GISTab({ tenant, params }: GISTabProps) {
   const [geojsonUploaded, setGeojsonUploaded] = useState(false);
 
   // Custom vector polygons relative to canvas center
-  const [gisFeatures, setGisFeatures] = useState<CustomGISFeature[]>([
-    {
-      name: "Área de Preservação Compensatória (Cerrado)",
-      type: "Reserve",
-      coordinates: [
-        { x: 100, y: 80 },
-        { x: 180, y: 60 },
-        { x: 220, y: 110 },
-        { x: 140, y: 140 }
-      ],
-      color: "rgba(16, 185, 129, 0.2)",
-      description: "Zona de reflorestamento obrigatória vinculada à Condicionante 2 da LI."
+  const [selectedRegion, setSelectedRegion] = useState<"Nordeste" | "Sul" | "Sudeste" | "Norte" | "Centro-Oeste">("Nordeste");
+
+  const REGION_PRESETS = {
+    Nordeste: {
+      label: "Nordeste",
+      tagline: "Complexo Portuário de Suape / Camaçari / Pecém / Eólicas do Sertão",
+      biome: "Caatinga & Mata Atlântica",
+      agencies: ["CPRH/PE", "INEMA/BA", "SEMACE/CE", "SUDENE", "IBAMA"],
+      baseLat: -8.0476,
+      baseLng: -34.8770,
+      features: [
+        {
+          name: "Área de Preservação Caatinga Nativa & Parque Eólico",
+          type: "Reserve" as const,
+          coordinates: [
+            { x: 90, y: 70 },
+            { x: 190, y: 50 },
+            { x: 230, y: 120 },
+            { x: 130, y: 150 }
+          ],
+          color: "rgba(16, 185, 129, 0.25)",
+          description: "Zona de compensação ambiental de caatinga preservada e área de amortecimento de parque gerador eólico no sertão."
+        },
+        {
+          name: "Terminal Marítimo & Dique de Suape/Pecém",
+          type: "Dam" as const,
+          coordinates: [
+            { x: 270, y: 150 },
+            { x: 370, y: 140 },
+            { x: 390, y: 230 },
+            { x: 300, y: 250 }
+          ],
+          color: "rgba(239, 68, 68, 0.25)",
+          description: "Bacia de recepção de efluentes tratados com monitoramento de dispersão na zona costeira sob regência CPRH/INEMA."
+        }
+      ]
     },
-    {
-      name: "Dique de Decantação Principal",
-      type: "Dam",
-      coordinates: [
-        { x: 280, y: 160 },
-        { x: 360, y: 150 },
-        { x: 380, y: 220 },
-        { x: 310, y: 240 }
-      ],
-      color: "rgba(239, 68, 68, 0.2)",
-      description: "Barragem monitorada por piezômetros telemétricos contra fadiga estrutural."
+    Sul: {
+      label: "Sul",
+      tagline: "Polo Petroquímico de Triunfo / Paranaguá / Vale do Itajaí",
+      biome: "Pampa & Mata de Araucárias",
+      agencies: ["FEPAM/RS", "IAT/PR", "IMA/SC", "IBAMA"],
+      baseLat: -25.4284,
+      baseLng: -49.2733,
+      features: [
+        {
+          name: "Reserva de Floresta Ombrófila Mista (Araucárias)",
+          type: "Reserve" as const,
+          coordinates: [
+            { x: 100, y: 80 },
+            { x: 200, y: 60 },
+            { x: 220, y: 130 },
+            { x: 120, y: 140 }
+          ],
+          color: "rgba(16, 185, 129, 0.25)",
+          description: "Área protegida de vegetação nativa de mata de araucária com programas estaduais FEPAM e IAT."
+        },
+        {
+          name: "Estação Industrial do Polo Petroquímico",
+          type: "Dam" as const,
+          coordinates: [
+            { x: 280, y: 160 },
+            { x: 380, y: 150 },
+            { x: 390, y: 220 },
+            { x: 310, y: 240 }
+          ],
+          color: "rgba(239, 68, 68, 0.25)",
+          description: "Unidade de tratamento e descarte de efluentes industriais com medidores de vazão em tempo real."
+        }
+      ]
+    },
+    Sudeste: {
+      label: "Sudeste",
+      tagline: "Bacia de Santos / Vale do Paraíba / Serra do Mar",
+      biome: "Mata Atlântica & Cerrado",
+      agencies: ["CETESB/SP", "INEA/RJ", "FEAM/MG", "IBAMA"],
+      baseLat: -22.9068,
+      baseLng: -43.1729,
+      features: [
+        {
+          name: "Área de Preservação Compensatória (Serra do Mar)",
+          type: "Reserve" as const,
+          coordinates: [
+            { x: 100, y: 80 },
+            { x: 180, y: 60 },
+            { x: 220, y: 110 },
+            { x: 140, y: 140 }
+          ],
+          color: "rgba(16, 185, 129, 0.2)",
+          description: "Zona de reflorestamento de Mata Atlântica vinculada às licenças ambientais estaduais CETESB/INEA."
+        },
+        {
+          name: "Dique de Decantação Principal",
+          type: "Dam" as const,
+          coordinates: [
+            { x: 280, y: 160 },
+            { x: 360, y: 150 },
+            { x: 380, y: 220 },
+            { x: 310, y: 240 }
+          ],
+          color: "rgba(239, 68, 68, 0.2)",
+          description: "Barragem monitorada por piezômetros telemétricos contra fadiga estrutural."
+        }
+      ]
+    },
+    Norte: {
+      label: "Norte",
+      tagline: "Polo Industrial de Manaus / Província Mineral de Carajás",
+      biome: "Amazônia",
+      agencies: ["IPAAM/AM", "SEMAS/PA", "IBAMA"],
+      baseLat: -3.1190,
+      baseLng: -60.0217,
+      features: [
+        {
+          name: "Cinturão de Proteção da Bacia Amazônica",
+          type: "Reserve" as const,
+          coordinates: [
+            { x: 80, y: 60 },
+            { x: 190, y: 40 },
+            { x: 230, y: 120 },
+            { x: 110, y: 150 }
+          ],
+          color: "rgba(16, 185, 129, 0.3)",
+          description: "Cinturão verde de floresta densa amazônica sob monitoramento do IPAAM e SEMAS."
+        },
+        {
+          name: "Bacia de Captação e Tratamento Fluviométrico",
+          type: "Dam" as const,
+          coordinates: [
+            { x: 260, y: 150 },
+            { x: 360, y: 140 },
+            { x: 370, y: 210 },
+            { x: 290, y: 230 }
+          ],
+          color: "rgba(239, 68, 68, 0.25)",
+          description: "Ponto de outorga de água e descarte com sensores de turbidez automatizados."
+        }
+      ]
+    },
+    "Centro-Oeste": {
+      label: "Centro-Oeste",
+      tagline: "Corredor Agroindustrial / Bacia do Pantanal & Cerrado",
+      biome: "Cerrado & Pantanal",
+      agencies: ["SEMA/MT", "IMASUL/MS", "IBAMA"],
+      baseLat: -15.7975,
+      baseLng: -47.8919,
+      features: [
+        {
+          name: "Reserva Legal Cerrado / Área de Recarga de Aquífero",
+          type: "Reserve" as const,
+          coordinates: [
+            { x: 90, y: 70 },
+            { x: 180, y: 50 },
+            { x: 210, y: 120 },
+            { x: 130, y: 140 }
+          ],
+          color: "rgba(16, 185, 129, 0.25)",
+          description: "Área de reserva legal cadastrada no CAR (Sicar) protegendo matas de galeria."
+        },
+        {
+          name: "Lagoa de Estabilização de Resíduos Agroindustriais",
+          type: "Dam" as const,
+          coordinates: [
+            { x: 270, y: 160 },
+            { x: 370, y: 150 },
+            { x: 380, y: 220 },
+            { x: 290, y: 240 }
+          ],
+          color: "rgba(239, 68, 68, 0.25)",
+          description: "Unidade de tratamento biológico com análises constantes de DBO/DQO."
+        }
+      ]
     }
-  ]);
+  };
+
+  const currentRegionData = REGION_PRESETS[selectedRegion];
+
+  const [gisFeatures, setGisFeatures] = useState<CustomGISFeature[]>(currentRegionData.features);
+
+  // Update features when region changes
+  useEffect(() => {
+    setGisFeatures(REGION_PRESETS[selectedRegion].features);
+  }, [selectedRegion]);
 
   // Handle resizing of canvas fluidly
   const [dimensions, setDimensions] = useState({ width: 600, height: 400 });
@@ -194,7 +351,7 @@ export default function GISTab({ tenant, params }: GISTabProps) {
     });
 
     // Draw active tenant parameter monitoring points
-    const activeParams = params.filter(p => p.tenantId === tenant.id);
+    const activeParams = (params || []).filter(p => p && p.tenantId === tenant?.id);
     activeParams.forEach((param, idx) => {
       // Map params arbitrarily to map quadrants for visual interest
       const x = 80 + (idx * 110) % (dimensions.width - 150);
@@ -272,9 +429,9 @@ export default function GISTab({ tenant, params }: GISTabProps) {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // Convert pixels to Brazilian realistic coordinate simulation
-    const baseLat = -22.9068; // Rio/Santos context
-    const baseLng = -43.1729;
+    // Convert pixels to regional realistic coordinate simulation
+    const baseLat = currentRegionData.baseLat;
+    const baseLng = currentRegionData.baseLng;
 
     const lat = baseLat - (y / dimensions.height) * 0.15;
     const lng = baseLng - (x / dimensions.width) * 0.25;
@@ -316,15 +473,53 @@ export default function GISTab({ tenant, params }: GISTabProps) {
   return (
     <div className="p-6 lg:p-8 space-y-8" id="gis-module-container">
       
-      {/* Title */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Title & Region Switcher */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             Cartografia Digital & GIS Corporativo
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Mapeamento georreferenciado multi-camadas de limites operacionais, outorgas de captação e ortofotos de drone.
+            Mapeamento georreferenciado multi-camadas de limites operacionais, outorgas e polígonos por macrorregião.
           </p>
+        </div>
+
+        {/* Macrorregiões do Brasil Buttons */}
+        <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800">
+          {(["Nordeste", "Sul", "Sudeste", "Norte", "Centro-Oeste"] as const).map((regionKey) => (
+            <button
+              key={regionKey}
+              type="button"
+              onClick={() => setSelectedRegion(regionKey)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                selectedRegion === regionKey
+                  ? "bg-slate-900 dark:bg-emerald-600 text-white shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              {regionKey === "Nordeste" && "🌵 "}
+              {regionKey === "Sul" && "🌲 "}
+              {regionKey === "Sudeste" && "🏭 "}
+              {regionKey === "Norte" && "🌳 "}
+              {regionKey === "Centro-Oeste" && "🌾 "}
+              {regionKey}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Selected Region Information Banner */}
+      <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/80 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs text-emerald-900 dark:text-emerald-200">
+        <div className="flex items-center space-x-2.5">
+          <span className="font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-100 font-mono">
+            {currentRegionData.label}
+          </span>
+          <span className="font-semibold">{currentRegionData.tagline}</span>
+        </div>
+        <div className="flex items-center space-x-3 text-[11px] text-emerald-700 dark:text-emerald-300">
+          <span>Bioma Predominante: <strong>{currentRegionData.biome}</strong></span>
+          <span>•</span>
+          <span>Órgãos Regionais: <strong>{currentRegionData.agencies.join(", ")}</strong></span>
         </div>
       </div>
 

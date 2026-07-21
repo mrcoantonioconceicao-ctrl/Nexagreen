@@ -1,4 +1,4 @@
-# NexaAmbient Enterprise Suite (`nexavor`)
+# NexaGreen Enterprise Suite (`nexagreen`)
 
 Plataforma corporativa de inteligência, governança ESG e gestão de compliance ambiental para indústrias e empresas de grande porte.
 
@@ -6,6 +6,7 @@ Plataforma corporativa de inteligência, governança ESG e gestão de compliance
 
 ## 🚀 Principais Funcionalidades
 
+- **GIS & Cartografia Digital Macrorregional**: Visualização georreferenciada multi-camadas adaptada às 5 macrorregiões do Brasil (Nordeste, Sul, Sudeste, Norte e Centro-Oeste), com coordenadas e biomas reais (Caatinga, Mata Atlântica, Cerrado, Amazônia, Pantanal, Pampa) e integração com órgãos ambientais locais (CPRH, INEMA, SEMACE, FEPAM, IAT, IMA, IPAAM, SEMA, etc.).
 - **Gestão de Licenças e Condicionantes Ambientais**: Acompanhamento automatizado de prazos (LP, LI, LO), status de cumprimento e evidências.
 - **Integração de Webhooks ERP (SAP / Oracle / Salesforce)**: Notificações assíncronas em tempo real com validação de assinatura criptográfica HMAC-SHA256 para eventos críticos.
 - **Controle de Acesso RBAC (Role-Based Access Control)**: Restrição de módulos sensíveis (Compliance e Integrações) com perfis diferenciados:
@@ -38,10 +39,10 @@ Plataforma corporativa de inteligência, governança ESG e gestão de compliance
 
 ```bash
 # Clone o repositório
-git clone https://github.com/mrcoantonioconceicao/nexavor.git
+git clone https://github.com/mrcoantonioconceicao/nexagreen.git
 
 # Acesse o diretório
-cd nexavor
+cd nexagreen
 
 # Instale as dependências
 npm install

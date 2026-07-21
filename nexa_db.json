@@ -1,0 +1,200 @@
+{
+  "tenants": [
+    {
+      "id": "tenant-1",
+      "name": "NexaGreen Industrial S.A.",
+      "cnpj": "10.000.000/0001-90",
+      "sector": "Industry",
+      "location": "Matriz Operacional",
+      "units": [
+        "Unidade Fabril 01",
+        "Terminal Logístico",
+        "Centro de Distribuição"
+      ]
+    },
+    {
+      "id": "tenant-2",
+      "name": "NexaGreen Mineração & Recursos",
+      "cnpj": "20.000.000/0001-11",
+      "sector": "Mining",
+      "location": "Complexo Industrial Norte",
+      "units": [
+        "Mina Operacional",
+        "Usina de Beneficiamento"
+      ]
+    }
+  ],
+  "responsibles": [
+    {
+      "id": "resp-1",
+      "name": "Gestor de Meio Ambiente",
+      "creaOrCrq": "CREA-BR 10203040",
+      "role": "Diretor de Sustentabilidade",
+      "email": "meioambiente@nexagreen.com"
+    },
+    {
+      "id": "resp-2",
+      "name": "Coordenador de Compliance",
+      "creaOrCrq": "CRQ-BR 50607080",
+      "role": "Coordenador de Engenharia Ambiental",
+      "email": "compliance@nexagreen.com"
+    }
+  ],
+  "licenses": [
+    {
+      "id": "lic-1",
+      "tenantId": "tenant-1",
+      "processNumber": "PROC-001/2026",
+      "licenseNumber": "LO Nº 1001/2026",
+      "type": "LO",
+      "issuer": "Órgão Ambiental Estadual",
+      "description": "Licença de Operação para o complexo industrial e instalações operacionais.",
+      "issueDate": "2026-01-15",
+      "dueDate": "2028-01-15",
+      "status": "Active",
+      "responsibles": [
+        "resp-1"
+      ],
+      "conditions": [
+        {
+          "id": "cond-1-1",
+          "licenseId": "lic-1",
+          "description": "Monitoramento periódico de amostragem de água de reuso e efluentes tratados.",
+          "dueDate": "2026-09-15",
+          "status": "Pending",
+          "assignedTeam": "Meio Ambiente"
+        },
+        {
+          "id": "cond-1-2",
+          "licenseId": "lic-1",
+          "description": "Apresentação do Relatório de Emissões Atmosféricas e inventário de resíduos sólidos.",
+          "dueDate": "2026-12-31",
+          "status": "Pending",
+          "assignedTeam": "Compliance"
+        }
+      ]
+    }
+  ],
+  "monitoring": [
+    {
+      "id": "mon-1",
+      "tenantId": "tenant-1",
+      "parameter": "pH do Efluente Tratado",
+      "type": "Water",
+      "unit": "pH",
+      "minLimit": 6,
+      "maxLimit": 9,
+      "currentValue": 7.4,
+      "status": "Normal",
+      "lastUpdated": "2026-07-21",
+      "history": [
+        {
+          "date": "2026-07-15",
+          "value": 7.2
+        },
+        {
+          "date": "2026-07-18",
+          "value": 7.5
+        },
+        {
+          "date": "2026-07-21",
+          "value": 7.4
+        }
+      ]
+    },
+    {
+      "id": "mon-2",
+      "tenantId": "tenant-1",
+      "parameter": "Material Particulado (MP10)",
+      "type": "Air",
+      "unit": "µg/m³",
+      "minLimit": 0,
+      "maxLimit": 50,
+      "currentValue": 28.5,
+      "status": "Normal",
+      "lastUpdated": "2026-07-21",
+      "history": [
+        {
+          "date": "2026-07-15",
+          "value": 24.1
+        },
+        {
+          "date": "2026-07-18",
+          "value": 29.8
+        },
+        {
+          "date": "2026-07-21",
+          "value": 28.5
+        }
+      ]
+    }
+  ],
+  "audits": [
+    {
+      "id": "aud-1",
+      "tenantId": "tenant-1",
+      "title": "Auditoria de Conformidade Ambiental ISO 14001",
+      "auditor": "Auditoria Externa de Compliance",
+      "date": "2026-06-10",
+      "type": "Internal",
+      "status": "Completed",
+      "score": 96,
+      "nonConformities": 1,
+      "actionPlans": [
+        {
+          "id": "ap-1",
+          "title": "Atualização da rotulagem da central temporária de resíduos",
+          "description": "Adequar identificação de recipientes segundo norma de classificação de resíduos.",
+          "assignedTo": "Gestor de Meio Ambiente",
+          "dueDate": "2026-08-30",
+          "status": "InProgress",
+          "priority": "Medium"
+        }
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "id": "doc-1",
+      "tenantId": "tenant-1",
+      "title": "Plano de Gestão Ambiental Corporativo (PGA)",
+      "category": "Environmental Report",
+      "version": "v2.0",
+      "status": "Approved",
+      "createdAt": "2026-01-10",
+      "updatedAt": "2026-07-10",
+      "author": "Gestor de Meio Ambiente",
+      "content": "PLANO DE GESTÃO AMBIENTAL CORPORATIVO\n\n1. OBJETIVO\nSustentar o atendimento rigoroso às condicionantes das licenças operacionais e garantir padrões ESG no gerenciamento de resíduos e consumo energético.",
+      "workflow": [
+        {
+          "role": "Meio Ambiente",
+          "user": "Gestor de Meio Ambiente",
+          "status": "Approved",
+          "date": "2026-01-12"
+        },
+        {
+          "role": "Jurídico / Compliance",
+          "user": "Coordenador de Compliance",
+          "status": "Approved",
+          "date": "2026-01-15"
+        }
+      ]
+    }
+  ],
+  "inspections": [],
+  "gisPoints": [
+    {
+      "id": "gis-1",
+      "tenantId": "tenant-1",
+      "name": "Ponto de Monitoramento P-01",
+      "lat": -23.5505,
+      "lng": -46.6333,
+      "type": "Piezometer",
+      "status": "Normal",
+      "lastReading": "Nível de água dentro da cota de segurança",
+      "updatedAt": "2026-07-21"
+    }
+  ],
+  "webhooks": [],
+  "webhookLogs": []
+}

@@ -49,7 +49,7 @@ export default function MonitoringTab({
   isDbUpdating,
   onNavigateToTab
 }: MonitoringTabProps) {
-  const tenantParams = params.filter(p => p.tenantId === tenant.id);
+  const tenantParams = (params || []).filter(p => p && p.tenantId === tenant?.id);
 
   // Filter param states
   const [filterCategory, setFilterCategory] = useState<string>("All");
@@ -64,7 +64,7 @@ export default function MonitoringTab({
   const [locationName, setLocationName] = useState("");
 
   // Sample submission chain states
-  const [samples, setSamples] = useState<LabCustody[]>(labCustodies);
+  const [samples, setSamples] = useState<LabCustody[]>(labCustodies || []);
   const [sampleCollector, setSampleCollector] = useState("");
   const [sampleCode, setSampleCode] = useState("");
   const [sampleLab, setSampleLab] = useState("Eurofins Análises Ambientais");
@@ -432,7 +432,7 @@ export default function MonitoringTab({
                     required
                     value={sampleCollector}
                     onChange={(e) => setSampleCollector(e.target.value)}
-                    placeholder="Ex: Amanda Rezende"
+                    placeholder="Ex: Eng. Responsável Técnico"
                     className="w-full text-xs px-2.5 py-1.5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-md text-slate-900 dark:text-white"
                   />
                 </div>

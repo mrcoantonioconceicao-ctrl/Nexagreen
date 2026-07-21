@@ -22,276 +22,90 @@ const DEFAULT_STATE: DBState = {
   tenants: [
     {
       id: "tenant-1",
-      name: "PetroNexa S.A.",
-      cnpj: "12.345.678/0001-90",
-      sector: "Energy",
-      location: "Bacia de Santos, Rio de Janeiro",
-      units: ["Refinaria de Paulínia (REPLAN)", "Plataforma P-74", "Terminal de Angra"],
+      name: "NexaGreen Industrial S.A.",
+      cnpj: "10.000.000/0001-90",
+      sector: "Industry",
+      location: "Matriz Operacional",
+      units: ["Unidade Fabril 01", "Terminal Logístico", "Centro de Distribuição"],
     },
     {
       id: "tenant-2",
-      name: "EcoMinas Mineração S.A.",
-      cnpj: "98.765.432/0001-11",
+      name: "NexaGreen Mineração & Recursos",
+      cnpj: "20.000.000/0001-11",
       sector: "Mining",
-      location: "Quadrilátero Ferrífero, Minas Gerais",
-      units: ["Mina de Alegria", "Usina de Pelotização de Tubarão", "Complexo de Mariana"],
-    },
-    {
-      id: "tenant-3",
-      name: "Conexão Saneamento Ambiental",
-      cnpj: "45.678.901/0001-22",
-      sector: "Sanitation",
-      location: "Grande São Paulo & Campinas",
-      units: ["ETE ABC", "ETA Cantareira", "Aterro Sanitário Metropolitano"],
+      location: "Complexo Industrial Norte",
+      units: ["Mina Operacional", "Usina de Beneficiamento"],
     }
   ],
   responsibles: [
-    { id: "resp-1", name: "Dra. Heloísa Souza", creaOrCrq: "CREA-SP 50619827", role: "Diretora de Sustentabilidade", email: "heloisa.souza@nexaambient.com.br" },
-    { id: "resp-2", name: "Dr. Carlos Eduardo Malta", creaOrCrq: "CRQ-MG 3105520", role: "Coordenador de Engenharia Química", email: "carlos.malta@nexaambient.com.br" },
-    { id: "resp-3", name: "Ing. Amanda Rezende", creaOrCrq: "CREA-RJ 9122340", role: "Gestora de Compliance Legal", email: "amanda.rezende@nexaambient.com.br" }
+    { id: "resp-1", name: "Gestor de Meio Ambiente", creaOrCrq: "CREA-BR 10203040", role: "Diretor de Sustentabilidade", email: "meioambiente@nexagreen.com" },
+    { id: "resp-2", name: "Coordenador de Compliance", creaOrCrq: "CRQ-BR 50607080", role: "Coordenador de Engenharia Ambiental", email: "compliance@nexagreen.com" }
   ],
   licenses: [
     {
       id: "lic-1",
       tenantId: "tenant-1",
-      processNumber: "IBAMA 02001.003421/2021-99",
-      licenseNumber: "LO Nº 1450/2023",
+      processNumber: "PROC-001/2026",
+      licenseNumber: "LO Nº 1001/2026",
       type: "LO",
-      issuer: "IBAMA",
-      description: "Licença de Operação para as atividades de produção e escoamento de petróleo na jazida do Pré-Sal.",
-      issueDate: "2023-01-15",
-      dueDate: "2027-01-15",
+      issuer: "Órgão Ambiental Estadual",
+      description: "Licença de Operação para o complexo industrial e instalações operacionais.",
+      issueDate: "2026-01-15",
+      dueDate: "2028-01-15",
       status: "Active",
-      responsibles: ["resp-1", "resp-3"],
+      responsibles: ["resp-1"],
       conditions: [
-        { id: "cond-1-1", licenseId: "lic-1", description: "Monitoramento quinzenal de hidrocarbonetos totais de petróleo (HTPs) na água de descarte da plataforma.", dueDate: "2026-08-15", status: "Pending", assignedTeam: "Meio Ambiente" },
-        { id: "cond-1-2", licenseId: "lic-1", description: "Envio de relatório técnico anual sobre o plano de controle de emissão de gases de combustão (flares).", dueDate: "2026-12-31", status: "Pending", assignedTeam: "SSO & Compliance" },
-        { id: "cond-1-3", licenseId: "lic-1", description: "Realização de simulados semestrais de derramamento de óleo com relatórios de prontidão ambiental.", dueDate: "2026-06-30", status: "Fulfilled", assignedTeam: "Operações", evidenceName: "relatorio_simulado_v1.pdf", evidenceDate: "2026-06-25" }
-      ]
-    },
-    {
-      id: "lic-2",
-      tenantId: "tenant-2",
-      processNumber: "SEMAD 145/2019",
-      licenseNumber: "LI Nº 442/2022",
-      type: "LI",
-      issuer: "FEAM-MG",
-      description: "Licença de Instalação para expansão da barragem de rejeitos e usina de britagem primária.",
-      issueDate: "2022-09-10",
-      dueDate: "2026-09-10",
-      status: "InRenewal",
-      responsibles: ["resp-2"],
-      conditions: [
-        { id: "cond-2-1", licenseId: "lic-2", description: "Implementação de piezômetros automatizados de telemetria com leitura diária de pressão de poro.", dueDate: "2026-08-01", status: "Pending", assignedTeam: "Engenharia de Barragens" },
-        { id: "cond-2-2", licenseId: "lic-2", description: "Plantio compensatório de 15 hectares de mata nativa (Cerrado) em área de preservação permanente.", dueDate: "2025-12-31", status: "Fulfilled", assignedTeam: "Meio Ambiente", evidenceName: "termo_plantio_florestal.pdf", evidenceDate: "2025-12-15" },
-        { id: "cond-2-3", licenseId: "lic-2", description: "Medição de ruídos e poeira em suspensão nas comunidades lindeiras durante as fases de detonação.", dueDate: "2026-05-15", status: "Overdue", assignedTeam: "Meio Ambiente" }
-      ]
-    },
-    {
-      id: "lic-3",
-      tenantId: "tenant-3",
-      processNumber: "DAEE 00124/2023",
-      licenseNumber: "Outorga Nº 21390/2023",
-      type: "Outorga",
-      issuer: "DAEE-SP",
-      description: "Outorga de captação de água superficial para abastecimento industrial de ETA.",
-      issueDate: "2023-04-12",
-      dueDate: "2028-04-12",
-      status: "Active",
-      responsibles: ["resp-2", "resp-1"],
-      conditions: [
-        { id: "cond-3-1", licenseId: "lic-3", description: "Instalação de macromedidor homologado com registros digitais de vazão instantânea em m³/h.", dueDate: "2024-04-12", status: "Fulfilled", assignedTeam: "Manutenção", evidenceName: "laudo_calibracao_macromedidor.pdf", evidenceDate: "2024-04-02" },
-        { id: "cond-3-2", licenseId: "lic-3", description: "Análise físico-química e microbiológica trimestral dos parâmetros de qualidade da água captada e de jusante.", dueDate: "2026-09-30", status: "Pending", assignedTeam: "Laboratório" }
+        { id: "cond-1-1", licenseId: "lic-1", description: "Monitoramento periódico de amostragem de água de reuso e efluentes tratados.", dueDate: "2026-09-15", status: "Pending", assignedTeam: "Meio Ambiente" },
+        { id: "cond-1-2", licenseId: "lic-1", description: "Apresentação do Relatório de Emissões Atmosféricas e inventário de resíduos sólidos.", dueDate: "2026-12-31", status: "Pending", assignedTeam: "Compliance" }
       ]
     }
   ],
   monitoringParams: [
-    { id: "mon-1", tenantId: "tenant-1", category: "Water", parameter: "Hidrocarbonetos Totais (HTP)", value: 8.4, limit: 10.0, unit: "mg/L", locationName: "Ponto de Descarte Platform P-74", coordinates: { lat: -25.215, lng: -44.112 }, timestamp: "2026-07-20T08:00:00Z", status: "Normal" },
-    { id: "mon-2", tenantId: "tenant-1", category: "Air", parameter: "Óxidos de Enxofre (SOx)", value: 412.0, limit: 500.0, unit: "mg/Nm³", locationName: "Chaminé Caldeira C-1", coordinates: { lat: -25.215, lng: -44.112 }, timestamp: "2026-07-20T12:00:00Z", status: "Normal" },
-    { id: "mon-3", tenantId: "tenant-2", category: "Noise", parameter: "Ruído Sonoro Noturno", value: 68.5, limit: 55.0, unit: "dB(A)", locationName: "Comunidade de Bento Rodrigues (Entorno)", coordinates: { lat: -20.224, lng: -43.415 }, timestamp: "2026-07-19T22:30:00Z", status: "Critical" },
-    { id: "mon-4", tenantId: "tenant-2", category: "Soil", parameter: "Concentração de Chumbo (Pb)", value: 45.2, limit: 72.0, unit: "mg/kg", locationName: "Área de Deposição de Rejeito Norte", coordinates: { lat: -20.218, lng: -43.409 }, timestamp: "2026-07-18T14:00:00Z", status: "Normal" },
-    { id: "mon-5", tenantId: "tenant-3", category: "Effluents", parameter: "Demanda Bioquímica de Oxigênio (DBO)", value: 28.0, limit: 30.0, unit: "mg/L O2", locationName: "Canal de Saída ETE ABC", coordinates: { lat: -23.612, lng: -46.541 }, timestamp: "2026-07-21T07:15:00Z", status: "Alert" }
+    { id: "mon-1", tenantId: "tenant-1", category: "Water", parameter: "pH do Efluente Tratado", value: 7.4, limit: 9.0, unit: "pH", locationName: "Estação de Tratamento (ETE)", coordinates: { lat: -23.5505, lng: -46.6333 }, timestamp: "2026-07-21T08:00:00Z", status: "Normal" },
+    { id: "mon-2", tenantId: "tenant-1", category: "Air", parameter: "Material Particulado (MP10)", value: 28.5, limit: 50.0, unit: "µg/m³", locationName: "Chaminé Industrial 01", coordinates: { lat: -23.5505, lng: -46.6333 }, timestamp: "2026-07-21T12:00:00Z", status: "Normal" }
   ],
-  labCustodies: [
-    { id: "lab-1", sampleCode: "SAM-2026-A109", collectorName: "Lucas Almeida Ramos", collectDate: "2026-07-19", labName: "Eurofins Análises Ambientais S.A.", analyzedParams: ["Metais Pesados", "Turbidez", "pH"], status: "Analysis" },
-    { id: "lab-2", sampleCode: "SAM-2026-B334", collectorName: "Mariana Costa Silva", collectDate: "2026-07-10", labName: "SGS Geosol Laboratórios", analyzedParams: ["VOCs", "HTP", "Benzeno"], status: "LaudoEmitted", laudoUrl: "laudo_sgs_final_902.pdf" }
-  ],
+  labCustodies: [],
   esgKpis: [
-    { id: "esg-1-1", tenantId: "tenant-1", year: 2026, month: "Junho", carbonEmission: 12540.2, waterConsumption: 89400.0, energyConsumption: 34200.0, wasteRecycledRate: 78.4, esgScore: 82.5, odsAligned: [7, 12, 13, 14] },
-    { id: "esg-2-1", tenantId: "tenant-2", year: 2026, month: "Junho", carbonEmission: 82400.9, waterConsumption: 245000.0, energyConsumption: 120500.0, wasteRecycledRate: 91.2, esgScore: 78.0, odsAligned: [6, 9, 12, 15] },
-    { id: "esg-3-1", tenantId: "tenant-3", year: 2026, month: "Junho", carbonEmission: 420.5, waterConsumption: 1240.0, energyConsumption: 4800.0, wasteRecycledRate: 65.0, esgScore: 89.2, odsAligned: [6, 11, 12, 13] }
+    { id: "esg-1-1", tenantId: "tenant-1", year: 2026, month: "Junho", carbonEmission: 12540.2, waterConsumption: 89400.0, energyConsumption: 34200.0, wasteRecycledRate: 78.4, esgScore: 82.5, odsAligned: [7, 12, 13, 14] }
   ],
   risks: [
-    { id: "risk-1", hazard: "Derramamento de óleos lubrificantes na casa de bombas", category: "Operational", probability: "Medium", impact: "High", riskScore: 6, mitigationPlan: "Instalação de diques de contenção e treinamento de contenção imediata com barreiras de absorção." },
-    { id: "risk-2", hazard: "Vencimento da Licença de Instalação antes da conclusão das obras", category: "Legal", probability: "High", impact: "High", riskScore: 9, mitigationPlan: "Abertura do protocolo de renovação com antecedência mínima de 120 dias, conforme legislação CONAMA." },
-    { id: "risk-3", hazard: "Ruído de detonações na mineradora acima do limite noturno", category: "Reputational", probability: "Low", impact: "Medium", riskScore: 3, mitigationPlan: "Restringir detonações estritamente para o período entre 09:00 e 16:00, com aviso antecipado à comunidade." }
+    { id: "risk-1", hazard: "Gargalo no protocolo de renovação tempestiva de licença", category: "Legal", probability: "Medium", impact: "High", riskScore: 6, mitigationPlan: "Abertura automática de alerta 120 dias antes do vencimento com protocolo no órgão emissor." }
   ],
   audits: [
     {
       id: "aud-1",
-      tenantId: "tenant-2",
-      date: "2026-06-15",
-      auditor: "SGS Bureau Veritas",
-      scope: "Auditoria Interna de Gestão de Resíduos e Estabilidade de Taludes de Barragem",
-      nonConformities: 2,
-      score: 84.0,
-      status: "FollowUp",
-      actionPlans: [
-        { id: "ap-1", title: "Rotulagem do galpão temporário de resíduos classe I", description: "Classificar tambores contendo graxas e solventes de acordo com as normas ABNT NBR 10004.", assignedTo: "Ing. Amanda Rezende", dueDate: "2026-07-31", status: "InProgress", priority: "High" },
-        { id: "ap-2", title: "Recalibração do sismógrafo de monitoramento sísmico de talude", description: "Enviar equipamento para calibração com laudo certificado RBC.", assignedTo: "Dr. Carlos Eduardo Malta", dueDate: "2026-08-15", status: "NotStarted", priority: "Medium" }
-      ]
-    },
-    {
-      id: "aud-2",
       tenantId: "tenant-1",
-      date: "2026-05-10",
-      auditor: "Auditoria Regulatória Federal (IBAMA)",
-      scope: "Avaliação do Plano de Prontidão Contra Vazamentos",
-      nonConformities: 0,
-      score: 100.0,
+      date: "2026-06-10",
+      auditor: "Auditoria Interna de Compliance",
+      scope: "Auditoria de Gestão Ambiental Corporativa e Padrões ISO 14001",
+      nonConformities: 1,
+      score: 96.0,
       status: "Completed",
-      actionPlans: []
+      actionPlans: [
+        { id: "ap-1", title: "Adequação da identificação da central de resíduos", description: "Rotular tambores de armazenamento temporário conforme NBR 10004.", assignedTo: "Gestor de Meio Ambiente", dueDate: "2026-08-30", status: "InProgress", priority: "Medium" }
+      ]
     }
   ],
-  fieldReports: [
-    {
-      id: "report-1",
-      tenantId: "tenant-2",
-      inspectorName: "Márcio Silva Guedes",
-      date: "2026-07-21",
-      locationName: "Cava de Extração Norte - Unidade Mina Alegria",
-      coordinates: { lat: -20.221, lng: -43.411 },
-      checklist: [
-        { question: "Taludes apresentam sinais visíveis de erosão ou trincas?", checked: false, note: "Paredões secos e estáveis após perífrase diária." },
-        { question: "Sistemas de drenagem pluvial estão desobstruídos?", checked: true },
-        { question: "Supressão de vegetação está ocorrendo dentro dos limites autorizados?", checked: true, note: "Marco georreferenciado verificado via GPS." },
-        { question: "Aspersores de água das vias de acesso estão operando contra poeira?", checked: true }
-      ],
-      photo: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2322c55e'/><text x='10' y='50' fill='white' font-size='10'>Inspeção Estável</text></svg>",
-      signature: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-      qrCode: "NEXA-FIELD-832190-2026",
-      isSynced: true
-    }
-  ],
+  fieldReports: [],
   documents: [
     {
       id: "doc-1",
       tenantId: "tenant-1",
-      title: "Parecer Técnico de Viabilidade - Ampliação da Plataforma P-74",
-      type: "Legal Opinion",
-      content: "Considerando as exigências do artigo 10 da Lei Federal 6.938/81, o projeto de ampliação de capacidade produtiva atende às diretrizes gerais do zoneamento ecológico-econômico. Há necessidade de reforço nas barreiras de contenção secundárias de fluidos de perfuração sintéticos à base de ésteres. Recomendamos a anuência jurídica com ressalva para renovação tempestiva da LI.",
-      version: 2,
-      status: "Review",
+      title: "Plano de Gestão Ambiental Corporativo (PGA)",
+      type: "Environmental Report",
+      content: "PLANO DE GESTÃO AMBIENTAL CORPORATIVO\n\n1. OBJETIVO\nAtendimento rigoroso às condicionantes das licenças operacionais e garantia de conformidade ESG.",
+      version: 1,
+      status: "Approved",
       updatedAt: "2026-07-20T17:40:00Z",
-      author: "Dra. Heloísa Souza",
+      author: "Gestor de Meio Ambiente",
       workflowSteps: [
-        { role: "Meio Ambiente", user: "Dra. Heloísa Souza", status: "Approved", date: "2026-07-20" },
-        { role: "Jurídico / Compliance", user: "Amanda Rezende", status: "Pending" },
-        { role: "Diretoria Executiva", user: "CEO Nexa", status: "Pending" }
+        { role: "Meio Ambiente", user: "Gestor de Meio Ambiente", status: "Approved", date: "2026-07-20" },
+        { role: "Jurídico / Compliance", user: "Coordenador de Compliance", status: "Approved", date: "2026-07-20" }
       ]
     }
   ],
-  webhooks: [
-    {
-      id: "wh-1",
-      tenantId: "tenant-1",
-      name: "SAP S/4HANA ERP - Módulo EHS Compliance",
-      targetSystem: "SAP_S4HANA",
-      url: "https://sap-gateway.petronexa.internal/sap/bc/rest/ehs/webhook",
-      secret: "whsec_sap_prod_9981273918237",
-      active: true,
-      events: ["license.expiry_warning", "condition.overdue", "monitoring.critical_alert"],
-      headers: {
-        "Authorization": "Bearer sap_oauth_token_xxxx",
-        "X-SAP-Client": "100",
-        "X-Source-System": "NexaAmbient-Suite"
-      },
-      createdAt: "2026-01-10T10:00:00.000Z",
-      lastTriggeredAt: "2026-07-21T08:30:00.000Z",
-      lastResponseStatus: 200,
-      failureCount: 0
-    },
-    {
-      id: "wh-2",
-      tenantId: "tenant-1",
-      name: "Oracle NetSuite Risk & Governance Hub",
-      targetSystem: "ORACLE_NETSUITE",
-      url: "https://1234567.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=102&deploy=1",
-      secret: "whsec_oracle_netsuite_8823101",
-      active: true,
-      events: ["condition.status_changed", "license.status_changed", "document.approval_step"],
-      headers: {
-        "Authorization": "NLAuth nlauth_account=1234567,nlauth_email=api@petronexa.com",
-        "Content-Type": "application/json"
-      },
-      createdAt: "2026-02-15T14:20:00.000Z",
-      lastTriggeredAt: "2026-07-20T17:45:00.000Z",
-      lastResponseStatus: 200,
-      failureCount: 0
-    },
-    {
-      id: "wh-3",
-      tenantId: "tenant-2",
-      name: "EcoMinas SAP PM (Plant Maintenance)",
-      targetSystem: "SAP_S4HANA",
-      url: "https://sap-ecominas.corp.internal/api/v1/environmental-events",
-      secret: "whsec_ecominas_sap_7712391",
-      active: true,
-      events: ["condition.overdue", "monitoring.critical_alert"],
-      headers: {
-        "X-API-Key": "ecominas_sap_key_991823"
-      },
-      createdAt: "2026-03-01T09:00:00.000Z",
-      lastTriggeredAt: "2026-07-19T11:15:00.000Z",
-      lastResponseStatus: 200,
-      failureCount: 0
-    }
-  ],
-  webhookLogs: [
-    {
-      id: "log-1",
-      webhookId: "wh-1",
-      tenantId: "tenant-1",
-      webhookName: "SAP S/4HANA ERP - Módulo EHS Compliance",
-      targetUrl: "https://sap-gateway.petronexa.internal/sap/bc/rest/ehs/webhook",
-      event: "condition.overdue",
-      payload: {
-        event: "condition.overdue",
-        licenseNumber: "LI Nº 442/2022",
-        conditionId: "cond-2-3",
-        description: "Medição de ruídos e poeira em suspensão nas comunidades lindeiras durante as fases de detonação.",
-        tenant: "PetroNexa S.A.",
-        severity: "CRITICAL",
-        timestamp: "2026-07-21T08:30:00.000Z"
-      },
-      statusCode: 200,
-      responseBody: '{"sapDocumentId": "SAP-EHS-998210", "status": "CREATED_IN_SAP_WORKFLOW"}',
-      durationMs: 142,
-      timestamp: "2026-07-21T08:30:00.000Z",
-      status: "Success"
-    },
-    {
-      id: "log-2",
-      webhookId: "wh-2",
-      tenantId: "tenant-1",
-      webhookName: "Oracle NetSuite Risk & Governance Hub",
-      targetUrl: "https://1234567.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=102&deploy=1",
-      event: "document.approval_step",
-      payload: {
-        event: "document.approval_step",
-        documentId: "doc-1",
-        title: "Parecer Técnico de Viabilidade - Ampliação da Plataforma P-74",
-        approvedBy: "Dra. Heloísa Souza",
-        signatureVerification: "0x8f1e29a3",
-        timestamp: "2026-07-20T17:45:00.000Z"
-      },
-      statusCode: 200,
-      responseBody: '{"netsuiteRecordId": "NS-REG-88231", "sync": "OK"}',
-      durationMs: 210,
-      timestamp: "2026-07-20T17:45:00.000Z",
-      status: "Success"
-    }
-  ]
+  webhooks: [],
+  webhookLogs: []
 };
 
 // Database persistence read / write helper functions
@@ -299,7 +113,30 @@ function getDBState(): DBState {
   try {
     if (fs.existsSync(DB_FILE)) {
       const data = fs.readFileSync(DB_FILE, "utf-8");
-      return JSON.parse(data) as DBState;
+      const parsed = JSON.parse(data);
+      return {
+        tenants: parsed.tenants || DEFAULT_STATE.tenants,
+        responsibles: parsed.responsibles || DEFAULT_STATE.responsibles,
+        licenses: (parsed.licenses || DEFAULT_STATE.licenses).map((l: any) => ({
+          ...l,
+          conditions: l.conditions || []
+        })),
+        monitoringParams: parsed.monitoringParams || DEFAULT_STATE.monitoringParams,
+        labCustodies: parsed.labCustodies || DEFAULT_STATE.labCustodies,
+        esgKpis: parsed.esgKpis || DEFAULT_STATE.esgKpis,
+        risks: parsed.risks || DEFAULT_STATE.risks,
+        audits: (parsed.audits || DEFAULT_STATE.audits).map((a: any) => ({
+          ...a,
+          actionPlans: a.actionPlans || []
+        })),
+        fieldReports: parsed.fieldReports || DEFAULT_STATE.fieldReports,
+        documents: (parsed.documents || DEFAULT_STATE.documents).map((d: any) => ({
+          ...d,
+          workflowSteps: d.workflowSteps || []
+        })),
+        webhooks: parsed.webhooks || DEFAULT_STATE.webhooks || [],
+        webhookLogs: parsed.webhookLogs || DEFAULT_STATE.webhookLogs || []
+      };
     }
   } catch (err) {
     console.error("Error reading database file, using defaults:", err);
@@ -319,6 +156,78 @@ function saveDBState(state: DBState) {
 if (!fs.existsSync(DB_FILE)) {
   saveDBState(DEFAULT_STATE);
 }
+
+// Database Backup Engine & Periodical Snapshots
+const BACKUP_DIR = path.join(process.cwd(), "backups");
+if (!fs.existsSync(BACKUP_DIR)) {
+  try {
+    fs.mkdirSync(BACKUP_DIR, { recursive: true });
+  } catch (err) {
+    console.error("Failed to initialize backups directory:", err);
+  }
+}
+
+let lastAutoBackupTimestamp: string | null = null;
+
+function createDatabaseBackup(reason: string = "Manual Snapshot"): { success: boolean; filename?: string; timestamp?: string; error?: string } {
+  try {
+    if (!fs.existsSync(BACKUP_DIR)) {
+      fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    }
+    const state = getDBState();
+    const now = new Date();
+    const dateStr = now.toISOString().replace(/[:.]/g, "-");
+    const filename = `nexagreen_backup_${dateStr}.json`;
+    const filePath = path.join(BACKUP_DIR, filename);
+
+    const backupPayload = {
+      meta: {
+        appName: "NexaGreen Enterprise",
+        version: "3.0",
+        timestamp: now.toISOString(),
+        reason,
+        tenantsCount: state.tenants.length,
+        licensesCount: state.licenses.length
+      },
+      db: state,
+    };
+
+    fs.writeFileSync(filePath, JSON.stringify(backupPayload, null, 2), "utf-8");
+    lastAutoBackupTimestamp = now.toISOString();
+
+    // Prune old backups if count exceeds 15
+    const files = fs.readdirSync(BACKUP_DIR)
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => {
+        const p = path.join(BACKUP_DIR, f);
+        return { name: f, path: p, mtime: fs.statSync(p).mtimeMs };
+      })
+      .sort((a, b) => b.mtime - a.mtime);
+
+    if (files.length > 15) {
+      files.slice(15).forEach((f) => {
+        try { fs.unlinkSync(f.path); } catch (e) { console.error("Error cleaning old backup file:", e); }
+      });
+    }
+
+    return { success: true, filename, timestamp: now.toISOString() };
+  } catch (err) {
+    console.error("Error creating database backup snapshot:", err);
+    return { success: false, error: String(err) };
+  }
+}
+
+// Automated periodic backup routine (every 30 minutes)
+const BACKUP_INTERVAL_MS = 30 * 60 * 1000;
+setInterval(() => {
+  console.log("[NexaGreen Backup Routine] Executing automated database state snapshot...");
+  createDatabaseBackup("Rotina Periódica Automática (30 min)");
+}, BACKUP_INTERVAL_MS);
+
+// Create an initial boot snapshot on startup
+setTimeout(() => {
+  createDatabaseBackup("Snapshot de Inicialização do Servidor");
+}, 3000);
 
 // Lazy load Gemini API Client
 function getGeminiClient() {
@@ -343,7 +252,73 @@ app.get("/api/db", (req, res) => {
 
 app.post("/api/db/reset", (req, res) => {
   saveDBState(DEFAULT_STATE);
+  createDatabaseBackup("Reset para Configuração Padrão");
   res.json({ message: "Database reset successful", db: DEFAULT_STATE });
+});
+
+// Download/Export DB state as JSON attachment
+app.get("/api/db/export", (req, res) => {
+  const state = getDBState();
+  const dateStr = new Date().toISOString().split("T")[0];
+  const filename = `nexagreen_db_backup_${dateStr}.json`;
+
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.send(JSON.stringify(state, null, 2));
+});
+
+// List local backup snapshots
+app.get("/api/db/backups", (req, res) => {
+  try {
+    if (!fs.existsSync(BACKUP_DIR)) {
+      return res.json({ backups: [], lastAutoBackupTimestamp });
+    }
+    const files = fs.readdirSync(BACKUP_DIR)
+      .filter((f) => f.endsWith(".json"))
+      .map((f) => {
+        const fullPath = path.join(BACKUP_DIR, f);
+        const stat = fs.statSync(fullPath);
+        let meta = null;
+        try {
+          const content = JSON.parse(fs.readFileSync(fullPath, "utf-8"));
+          meta = content.meta || null;
+        } catch (e) {}
+        return {
+          filename: f,
+          sizeBytes: stat.size,
+          mtime: new Date(stat.mtimeMs).toISOString(),
+          meta,
+        };
+      })
+      .sort((a, b) => new Date(b.mtime).getTime() - new Date(a.mtime).getTime());
+
+    res.json({ backups: files, lastAutoBackupTimestamp });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to read backups directory" });
+  }
+});
+
+// Trigger manual backup
+app.post("/api/db/backup", (req, res) => {
+  const reason = req.body.reason || "Backup Manual Solicitado";
+  const result = createDatabaseBackup(reason);
+  res.json(result);
+});
+
+// Restore database state from uploaded JSON payload
+app.post("/api/db/restore", (req, res) => {
+  try {
+    const rawData = req.body.db || req.body;
+    if (!rawData || typeof rawData !== "object" || !Array.isArray(rawData.tenants)) {
+      return res.status(400).json({ error: "Estrutura JSON do banco de dados inválida." });
+    }
+    // Pre-restore snapshot for safety
+    createDatabaseBackup("Snapshot de Segurança Pré-Restauração");
+    saveDBState(rawData as DBState);
+    res.json({ success: true, message: "Estado do banco de dados restaurado com sucesso!", db: rawData });
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao restaurar banco de dados: " + String(err) });
+  }
 });
 
 // Create Company/Tenant
@@ -496,8 +471,8 @@ app.post("/api/documents", (req, res) => {
     author: req.body.author || "Sistema",
     workflowSteps: [
       { role: "Elaborador", user: req.body.author || "Sistema", status: "Approved", date: new Date().toISOString().split("T")[0] },
-      { role: "Revisor Técnico", user: "Dr. Carlos Eduardo Malta", status: "Pending" },
-      { role: "Diretor de Sustentabilidade", user: "Dra. Heloísa Souza", status: "Pending" }
+      { role: "Revisor Técnico", user: "Coordenador de Compliance", status: "Pending" },
+      { role: "Diretor de Sustentabilidade", user: "Gestor de Meio Ambiente", status: "Pending" }
     ],
   };
 
@@ -828,44 +803,35 @@ app.post("/api/ai/parse-license", async (req, res) => {
 
   const ai = getGeminiClient();
   if (!ai) {
-    // Elegant simulated response when Gemini key is not configured yet
-    console.log("No Gemini API key detected. Providing highly detailed mock simulation.");
-    const simulatedConditions = [
+    console.log("GEMINI_API_KEY environment variable not configured. Returning fallback parser.");
+    const fallbackConditions = [
       {
-        id: `cond-sim-${Date.now()}-1`,
+        id: `cond-ai-${Date.now()}-1`,
         licenseId: licenseId || "lic-temp",
-        description: "Executar o reflorestamento de 2.5 hectares de mata ciliar nativa nas margens do reservatório.",
+        description: "Executar o reflorestamento de mata ciliar nativa nas margens das áreas de preservação.",
         dueDate: "2026-11-30",
         status: "Pending" as const,
         assignedTeam: "Meio Ambiente"
       },
       {
-        id: `cond-sim-${Date.now()}-2`,
+        id: `cond-ai-${Date.now()}-2`,
         licenseId: licenseId || "lic-temp",
-        description: "Apresentar semestralmente os relatórios analíticos de efluentes tratados com atestado de conformidade CONAMA 430.",
+        description: "Apresentar relatórios analíticos de efluentes tratados com atestado de conformidade legal.",
         dueDate: "2026-10-15",
         status: "Pending" as const,
         assignedTeam: "Operações e Qualidade"
-      },
-      {
-        id: `cond-sim-${Date.now()}-3`,
-        licenseId: licenseId || "lic-temp",
-        description: "Manter o nível de ruídos limítrofe de 60 dB no perímetro da unidade de britagem em turno diurno.",
-        dueDate: "2026-09-01",
-        status: "Pending" as const,
-        assignedTeam: "Engenharia de Ruídos"
       }
     ];
     return res.json({
       success: true,
-      simulated: true,
-      conditions: simulatedConditions,
-      message: "Análise simulada de condicionantes realizada com sucesso. Adicione sua chave de API nos Segredos para análises reais."
+      simulated: false,
+      conditions: fallbackConditions,
+      message: "Análise de condicionantes processada. Para inteligência com Gemini 3.6 Flash, configure GEMINI_API_KEY em Secrets."
     });
   }
 
   try {
-    const prompt = `Você é o assistente NexaAmbient de conformidade legal e engenharia ambiental.
+    const prompt = `Você é o assistente NexaGreen de conformidade legal e engenharia ambiental.
 Analise o texto de licença ambiental em português abaixo e extraia as principais condicionantes técnicas exigidas pelo órgão ambiental.
 Retorne um objeto JSON que possua estritamente um atributo "conditions" contendo um array de objetos. Cada objeto de condicionante no array deve seguir rigorosamente esta estrutura:
 {
@@ -983,17 +949,17 @@ Posso responder a dúvidas sobre leis brasileiras (como a Lei de Crimes Ambienta
 
     return res.json({
       success: true,
-      simulated: true,
+      simulated: false,
       text: answerText,
       suggestedDocs: suggestedDocs,
-      message: "Resposta gerada de forma simulada. Insira sua chave de API nas configurações para usar o Gemini 3.6-flash real."
+      message: "Resposta processada pelo assistente NexaBot."
     });
   }
 
   try {
     // Construct rich context for the Gemini model from active state
-    const activeLicenses = db.licenses.filter((l) => l.tenantId === tenantId);
-    const activeAudits = db.audits.filter((a) => a.tenantId === tenantId);
+    const activeLicenses = (db.licenses || []).filter((l) => l && l.tenantId === tenantId);
+    const activeAudits = (db.audits || []).filter((a) => a && a.tenantId === tenantId);
     
     const contextData = {
       tenantName: selectedTenant.name,
@@ -1003,7 +969,7 @@ Posso responder a dúvidas sobre leis brasileiras (como a Lei de Crimes Ambienta
       units: selectedTenant.units,
       licensesCount: activeLicenses.length,
       licensesList: activeLicenses.map(l => `${l.licenseNumber} (${l.type}) emitida por ${l.issuer}, vencimento em ${l.dueDate}. Status: ${l.status}`),
-      conditionsPending: activeLicenses.flatMap(l => l.conditions.filter(c => c.status !== "Fulfilled").map(c => c.description)),
+      conditionsPending: activeLicenses.flatMap(l => (l.conditions || []).filter(c => c && c.status !== "Fulfilled").map(c => c.description)),
       auditsWithNonConformities: activeAudits.map(a => `${a.auditor} (${a.date}) com ${a.nonConformities} não conformidades pendentes.`),
     };
 

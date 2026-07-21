@@ -63,7 +63,7 @@ export default function DocumentsTab({
   onSignDocumentStep,
   isDbUpdating
 }: DocumentsTabProps) {
-  const tenantDocs = documents.filter(d => d.tenantId === tenant.id);
+  const tenantDocs = (documents || []).filter(d => d && d.tenantId === tenant?.id);
 
   // States
   const [selectedDocId, setSelectedDocId] = useState<string | null>(
@@ -95,7 +95,7 @@ export default function DocumentsTab({
   const [certificates, setCertificates] = useState<Certificate[]>([
     {
       id: "cert-1",
-      ownerName: "Dra. Heloísa Souza",
+      ownerName: "Gestor de Meio Ambiente",
       type: "e-CPF A3 (Físico/SmartCard)",
       issuer: "AC Certisign RFB v5",
       serialNumber: "3892-C938-1A22-FF89",
@@ -106,9 +106,9 @@ export default function DocumentsTab({
     },
     {
       id: "cert-2",
-      ownerName: "Amanda Rezende",
-      type: "e-CPF A3 (Token OAB)",
-      issuer: "AC OAB Federal v3",
+      ownerName: "Coordenador de Compliance",
+      type: "e-CPF A3 (Token ICP-Brasil)",
+      issuer: "AC ICP-Brasil v3",
       serialNumber: "7721-AA90-33BC-E441",
       validUntil: "2028-06-30",
       fingerprint: "AA:BB:CC:DD:EE:01:23:45:67:89:10:11:12:13:14:15",
@@ -117,7 +117,7 @@ export default function DocumentsTab({
     },
     {
       id: "cert-3",
-      ownerName: "CEO Nexa",
+      ownerName: "Diretoria Corporativa",
       type: "e-CPF A1 (Nuvem)",
       issuer: "AC Serasa Experian v2",
       serialNumber: "0091-B882-99FA-1022",
@@ -262,9 +262,9 @@ export default function DocumentsTab({
       status: "Review",
       author: "Coordenador de Sustentabilidade",
       workflowSteps: [
-        { role: "Meio Ambiente", user: "Dra. Heloísa Souza", status: "Approved", date: new Date().toISOString().split("T")[0] },
-        { role: "Jurídico / Compliance", user: "Amanda Rezende", status: "Pending" },
-        { role: "Diretoria Executiva", user: "CEO Nexa", status: "Pending" }
+        { role: "Meio Ambiente", user: "Gestor de Meio Ambiente", status: "Approved", date: new Date().toISOString().split("T")[0] },
+        { role: "Jurídico / Compliance", user: "Coordenador de Compliance", status: "Pending" },
+        { role: "Diretoria Executiva", user: "Diretoria Corporativa", status: "Pending" }
       ]
     });
 
@@ -304,7 +304,7 @@ export default function DocumentsTab({
         }
       },
       content: activeDoc.content,
-      workflowSteps: activeDoc.workflowSteps.map(step => ({
+      workflowSteps: (activeDoc.workflowSteps || []).map(step => ({
         ...step,
         signatureVerification: signatureVerificationResults[step.role] ?? true
       }))
@@ -760,7 +760,7 @@ export default function DocumentsTab({
 
                 {/* BPMN steps visualization */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                  {activeDoc.workflowSteps.map((step, idx) => {
+                  {(activeDoc.workflowSteps || []).map((step, idx) => {
                     const isPending = step.status === "Pending";
                     const isApproved = step.status === "Approved";
                     const currentCert = certificates.find(c => c.id === selectedCertificateId) || certificates[0];
@@ -861,7 +861,7 @@ export default function DocumentsTab({
                       <div className="space-y-1 text-[11px]">
                         <p className="text-slate-700 dark:text-slate-300 font-semibold"><span className="text-slate-400">Documento:</span> {activeDoc.title}</p>
                         <p className="text-slate-700 dark:text-slate-300"><span className="text-slate-400">Versão:</span> v{activeDoc.version}</p>
-                        <p className="text-slate-700 dark:text-slate-300"><span className="text-slate-400">Assinaturas Ativas:</span> {activeDoc.workflowSteps.filter(s => s.status === "Approved").length} / {activeDoc.workflowSteps.length}</p>
+                        <p className="text-slate-700 dark:text-slate-300"><span className="text-slate-400">Assinaturas Ativas:</span> {(activeDoc.workflowSteps || []).filter(s => s && s.status === "Approved").length} / {(activeDoc.workflowSteps || []).length}</p>
                         <p className="text-slate-700 dark:text-slate-300 font-mono text-[9px] bg-slate-50 dark:bg-slate-900 p-1.5 rounded select-all break-all">
                           <span className="text-slate-400 block font-sans text-[8px] font-bold uppercase mb-0.5">Hash Assinado Original:</span>
                           SHA-256: {originalExpectedHash || "Calculando..."}

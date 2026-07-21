@@ -53,7 +53,7 @@ const ODS_MAP: { [key: number]: { title: string; color: string; desc: string } }
 
 export default function DashboardESG({ tenant, licenses, esgKpis, onNavigateToTab }: DashboardESGProps) {
   // Filter KPIs specifically for this tenant
-  const tenantKpis = esgKpis.filter(k => k.tenantId === tenant.id);
+  const tenantKpis = (esgKpis || []).filter(k => k && k.tenantId === tenant?.id);
   const currentKpi = tenantKpis[tenantKpis.length - 1] || {
     carbonEmission: 0,
     waterConsumption: 0,
@@ -64,18 +64,18 @@ export default function DashboardESG({ tenant, licenses, esgKpis, onNavigateToTa
   };
 
   // Compile all conditionals for alerts
-  const tenantLicenses = licenses.filter(l => l.tenantId === tenant.id);
+  const tenantLicenses = (licenses || []).filter(l => l && l.tenantId === tenant?.id);
   const allConditions = tenantLicenses.flatMap(l => 
-    l.conditions.map(c => ({
+    (l.conditions || []).map(c => ({
       ...c,
       licenseNumber: l.licenseNumber,
       issuer: l.issuer
     }))
   );
 
-  const pendingConditions = allConditions.filter(c => c.status === "Pending");
-  const overdueConditions = allConditions.filter(c => c.status === "Overdue");
-  const fulfilledConditions = allConditions.filter(c => c.status === "Fulfilled");
+  const pendingConditions = (allConditions || []).filter(c => c && c.status === "Pending");
+  const overdueConditions = (allConditions || []).filter(c => c && c.status === "Overdue");
+  const fulfilledConditions = (allConditions || []).filter(c => c && c.status === "Fulfilled");
 
   // Simulated trend data for interactive charts
   const monthlyTrendData = [

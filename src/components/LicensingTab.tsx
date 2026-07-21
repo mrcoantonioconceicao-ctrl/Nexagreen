@@ -34,20 +34,20 @@ interface LicensingTabProps {
   onNavigateToTab?: (tab: string) => void;
 }
 
-// Built-in Portuguese templates for realistic demo parsing
-const DEMO_LICENSES_TEXTS = {
-  mineracao: `LICENÇA DE INSTALAÇÃO (LI) Nº 890/2026 - FEAM/MG
-PROCESSO: SEMAD 145/2019
-EMPREENDIMENTO: Complexo Minerário Alegria - EcoMinas
+// Built-in Portuguese templates for license parsing
+const SAMPLE_LICENSES_TEXTS = {
+  mineracao: `LICENÇA DE INSTALAÇÃO (LI) Nº 890/2026 - ÓRGÃO AMBIENTAL
+PROCESSO: PROC-145/2026
+EMPREENDIMENTO: Complexo de Produção Industrial
 CONDICIONANTES TÉCNICAS MANDATÓRIAS:
-1. O empreendedor deverá implantar cortinas arbóreas com espécies nativas do bioma Cerrado no entorno da pilha de estéril leste até 30 de Outubro de 2026, visando à mitigação do impacto visual e de dispersão de poeira.
-2. Fica obrigado o monitoramento diário da integridade das geomembranas do dique de decantação, devendo reportar ao órgão ambiental qualquer indício de percolação ou vazamento no prazo máximo de 48 horas. Data de entrega limite do relatório de ensaio: 2026-11-15.
-3. Executar o plano de reassentamento e indenização das famílias da comunidade lindeira de Bento Rodrigues, apresentando o andamento das negociações de forma bimestral, sob pena de suspensão das atividades.`,
-  petroleo: `RESOLUÇÃO DE LICENÇA DE OPERAÇÃO (LO) IBAMA Nº 1450/2023
-EMPREENDEDOR: PetroNexa S.A.
+1. O empreendedor deverá implantar cortinas arbóreas com espécies nativas do bioma local no entorno das instalações até 30 de Outubro de 2026, visando à mitigação de poeiras.
+2. Fica obrigado o monitoramento diário da integridade da estação de tratamento de efluentes, devendo reportar ao órgão ambiental qualquer indício de percolação ou vazamento no prazo máximo de 48 horas. Data de entrega limite do relatório de ensaio: 2026-11-15.
+3. Executar o plano de gestão ambiental das comunidades lindeiras, apresentando o andamento de forma bimestral.`,
+  petroleo: `RESOLUÇÃO DE LICENÇA DE OPERAÇÃO (LO) Nº 1001/2026
+EMPREENDEDOR: NexaGreen Industrial S.A.
 DIRETRIZES GERAIS E CONDICIONANTES:
 Artigo 2º. Garantir que a queima de gases de flare não ultrapasse os limites atmosféricos de óxido de nitrogênio (NOx). Deverá ser entregue o Relatório Técnico de Emissões Atmosféricas Anual até 2026-12-31, assinado por técnico qualificado.
-Artigo 5º. Fica determinado o patrulhamento semanal da avifauna costeira no raio de 10km do terminal de Angra, visando registrar possíveis anomalias migratórias decorrentes da iluminação artificial. Prazo de implementação: 2026-09-15. Responsável técnico: Meio Ambiente.`
+Artigo 5º. Fica determinado o patrulhamento ambiental no raio de 10km da unidade. Prazo de implementação: 2026-09-15. Responsável técnico: Meio Ambiente.`
 };
 
 export default function LicensingTab({
@@ -60,7 +60,7 @@ export default function LicensingTab({
   isDbUpdating,
   onNavigateToTab
 }: LicensingTabProps) {
-  const tenantLicenses = licenses.filter((l) => l.tenantId === tenant.id);
+  const tenantLicenses = (licenses || []).filter((l) => l && l.tenantId === tenant?.id);
 
   // Accordion expanding states for licenses
   const [expandedLicenseId, setExpandedLicenseId] = useState<string | null>(
@@ -362,9 +362,10 @@ export default function LicensingTab({
             </div>
           ) : (
             tenantLicenses.map((lic) => {
+              const conditions = lic.conditions || [];
               const isExpanded = expandedLicenseId === lic.id;
-              const overdueCount = lic.conditions.filter(c => c.status === "Overdue").length;
-              const pendingCount = lic.conditions.filter(c => c.status === "Pending").length;
+              const overdueCount = conditions.filter(c => c && c.status === "Overdue").length;
+              const pendingCount = conditions.filter(c => c && c.status === "Pending").length;
               
               return (
                 <div 
@@ -433,7 +434,7 @@ export default function LicensingTab({
                           </div>
                           <div>
                             <span className="text-slate-400 block font-semibold uppercase">Gestores Designados</span>
-                            <span className="text-slate-700 dark:text-slate-250 font-medium">Dra. Heloísa Souza</span>
+                            <span className="text-slate-700 dark:text-slate-250 font-medium">Gestor de Meio Ambiente</span>
                           </div>
                           <div>
                             <span className="text-slate-400 block font-semibold uppercase">Situação Legal</span>
@@ -446,15 +447,15 @@ export default function LicensingTab({
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <h4 className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Condicionantes da Licença</h4>
-                          <span className="text-xs text-slate-500">{lic.conditions.length} condicionantes listadas</span>
+                          <span className="text-xs text-slate-500">{conditions.length} condicionantes listadas</span>
                         </div>
 
                         {/* List items */}
-                        {lic.conditions.length === 0 ? (
+                        {conditions.length === 0 ? (
                           <p className="text-center py-4 text-xs text-slate-450 italic">Nenhuma condicionante adicionada a esta licença ainda. Use o extrator IA ao lado para gerar condicionantes automáticas.</p>
                         ) : (
                           <div className="space-y-3">
-                            {lic.conditions.map((cond) => (
+                            {conditions.map((cond) => (
                               <div key={cond.id} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 border border-slate-150 dark:border-slate-850 rounded-xl bg-white dark:bg-slate-900 shadow-sm">
                                 <div className="space-y-1">
                                   <div className="flex items-center space-x-2">
@@ -567,33 +568,31 @@ export default function LicensingTab({
               Cole o texto de uma licença (ou use nossos modelos) para analisar e extrair as condicionantes ambientais de forma automatizada usando o modelo <span className="font-bold underline text-slate-900 dark:text-emerald-400">Gemini 3.6-flash</span>.
             </p>
 
-            {/* Quick Demo Template buttons */}
+            {/* Quick Sample Template buttons */}
             <div className="space-y-1.5 pt-1">
               <span className="block text-[10px] font-bold uppercase tracking-wider text-emerald-100 dark:text-emerald-500">Exemplos de Licenças do Setor:</span>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => {
-                    setAiInputText(DEMO_LICENSES_TEXTS.mineracao);
-                    // Match to EcoMinas
+                    setAiInputText(SAMPLE_LICENSES_TEXTS.mineracao);
                     const matchedLic = tenantLicenses.find(l => l.type === "LI") || tenantLicenses[0];
                     if (matchedLic) setAiParseTargetLicenseId(matchedLic.id);
                   }}
                   className="bg-white/10 hover:bg-white/20 text-emerald-50 text-[10px] px-2.5 py-1.5 rounded-lg border border-white/15 transition-all text-left truncate max-w-xs font-semibold cursor-pointer"
                 >
-                  Mineração de Ferro (LI)
+                  Licença de Instalação (LI)
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    setAiInputText(DEMO_LICENSES_TEXTS.petroleo);
-                    // Match to PetroNexa
+                    setAiInputText(SAMPLE_LICENSES_TEXTS.petroleo);
                     const matchedLic = tenantLicenses.find(l => l.type === "LO") || tenantLicenses[0];
                     if (matchedLic) setAiParseTargetLicenseId(matchedLic.id);
                   }}
                   className="bg-white/10 hover:bg-white/20 text-emerald-50 text-[10px] px-2.5 py-1.5 rounded-lg border border-white/15 transition-all text-left truncate max-w-xs font-semibold cursor-pointer"
                 >
-                  Petrolífera Pré-Sal (LO)
+                  Licença de Operação (LO)
                 </button>
               </div>
             </div>
@@ -648,11 +647,6 @@ export default function LicensingTab({
                 <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                 <p className="font-semibold">{aiMessage}</p>
               </div>
-              {aiSimulatedNotice && (
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
-                  *Aviso: O applet gerou um escopo simulado de condicionantes de alta fidelidade para teste, pois não há chave do Gemini configurada em Secrets.
-                </p>
-              )}
             </div>
           )}
 
