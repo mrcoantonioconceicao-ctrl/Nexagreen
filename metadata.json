@@ -1,0 +1,6 @@
+{
+  "name": "Nexavor",
+  "description": "Plataforma de inteligência e gestão de compliance ambiental corporativo. Oferece controle de licenças, condicionantes, monitoramento de parâmetros (água, ar, resíduos), governança ESG e assistente com IA para análise de licenças e pareceres legais.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
