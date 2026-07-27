@@ -56,7 +56,7 @@ export default function Sidebar({
   isOpen = false,
   onClose
 }: SidebarProps) {
-  const { currentUser, switchUser, hasPermission, getRoleBadgeColor } = useAuth();
+  const { currentUser, switchUser, hasPermission, getRoleBadgeColor, openAuthModal, logout } = useAuth();
   const [showRoleMenu, setShowRoleMenu] = useState(false);
 
   const activeTenant = tenants.find(t => t.id === selectedTenantId) || tenants[0];
@@ -121,9 +121,18 @@ export default function Sidebar({
 
       {/* Multi-Tenant Switcher */}
       <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40">
-        <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-          Organização / Tenant Ativo
-        </label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            Organização / Tenant Ativo
+          </label>
+          <button
+            onClick={() => openAuthModal("register")}
+            className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center space-x-1 cursor-pointer"
+            title="Cadastrar Novo Tenant (/register-company)"
+          >
+            <span>+ Novo Tenant</span>
+          </button>
+        </div>
         <div className="relative">
           <Building2 className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
           <select
@@ -140,9 +149,14 @@ export default function Sidebar({
           </select>
         </div>
         {activeTenant && (
-          <div className="mt-3 flex items-center space-x-1.5 text-[11px] text-slate-500 dark:text-slate-450">
-            <span className="font-semibold text-slate-700 dark:text-slate-300">CNPJ:</span>
-            <span>{activeTenant.cnpj}</span>
+          <div className="mt-3 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-450">
+            <div className="flex items-center space-x-1.5">
+              <span className="font-semibold text-slate-700 dark:text-slate-300">CNPJ:</span>
+              <span>{activeTenant.cnpj}</span>
+            </div>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+              {activeTenant.sector}
+            </span>
           </div>
         )}
       </div>
@@ -244,6 +258,19 @@ export default function Sidebar({
                   </span>
                 </button>
               ))}
+
+              <div className="border-t border-slate-200 dark:border-slate-800 pt-1 mt-1">
+                <button
+                  onClick={() => {
+                    setShowRoleMenu(false);
+                    openAuthModal("login");
+                  }}
+                  className="w-full text-left p-2 rounded-xl text-xs transition-colors cursor-pointer flex items-center space-x-2 text-emerald-600 dark:text-emerald-400 font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                >
+                  <Lock className="h-3.5 w-3.5" />
+                  <span>Portal de Login Corporativo & SSO</span>
+                </button>
+              </div>
             </div>
           )}
         </div>

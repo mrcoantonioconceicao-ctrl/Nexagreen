@@ -337,6 +337,107 @@ app.post("/api/tenants", (req, res) => {
   res.status(201).json(newTenant);
 });
 
+// Full Company Onboarding Endpoint (/register-company)
+app.post("/api/register-company", (req, res) => {
+  try {
+    const state = getDBState();
+    const { name, cnpj, sector, location, units, adminUser, activeModules } = req.body;
+
+    if (!name || !cnpj) {
+      return res.status(400).json({ error: "Razão Social e CNPJ são obrigatórios." });
+    }
+
+    const tenantId = `tenant-${Date.now()}`;
+    const newTenant: Tenant = {
+      id: tenantId,
+      name,
+      cnpj,
+      sector: sector || "Industry",
+      location: location || "Sede Corporativa",
+      units: Array.isArray(units) && units.length > 0 ? units : ["Unidade Matriz", "Centro Operacional"],
+    };
+
+    state.tenants.push(newTenant);
+
+    // Seed initial ESG KPI for new tenant
+    state.esgKpis.push({
+      id: `esg-${tenantId}-1`,
+      tenantId,
+      year: 2026,
+      month: "Julho",
+      carbonEmission: 1250.0,
+      waterConsumption: 8400.0,
+      energyConsumption: 14200.0,
+      wasteRecycledRate: 85.0,
+      esgScore: 88.5,
+      odsAligned: [6, 7, 12, 13, 15]
+    });
+
+    // Seed initial sample Monitoring Parameter
+    state.monitoringParams.push({
+      id: `mon-${tenantId}-1`,
+      tenantId,
+      category: "Water",
+      parameter: "pH do Efluente Industrial",
+      value: 7.2,
+      limit: 9.0,
+      unit: "pH",
+      locationName: "Ponto de Lançamento 01",
+      coordinates: { lat: -23.5505, lng: -46.6333 },
+      timestamp: new Date().toISOString(),
+      status: "Normal"
+    });
+
+    // Seed initial sample License
+    state.licenses.push({
+      id: `lic-${tenantId}-1`,
+      tenantId,
+      processNumber: `PROC-${Math.floor(100000 + Math.random() * 900000)}/2026`,
+      licenseNumber: `LO-${Math.floor(1000 + Math.random() * 9000)}/2026`,
+      type: "LO",
+      issuer: "IBAMA / Órgão Estadual",
+      description: "Licença de Operação da Unidade Principal",
+      issueDate: "2026-01-15",
+      dueDate: "2028-01-15",
+      status: "Active",
+      responsibles: ["resp-1"],
+      conditions: [
+        {
+          id: `cond-${tenantId}-1`,
+          licenseId: `lic-${tenantId}-1`,
+          description: "Apresentar relatório trimestral de monitoramento hídrico",
+          dueDate: "2026-10-30",
+          status: "Pending",
+          assignedTeam: "Equipe de Meio Ambiente"
+        }
+      ]
+    });
+
+    saveDBState(state);
+
+    const createdAdmin = {
+      id: `usr-${Date.now()}`,
+      name: adminUser?.name || "Administrador EHS",
+      email: adminUser?.email || "admin@" + name.toLowerCase().replace(/[^a-z0-9]/g, "") + ".com.br",
+      role: "Administrador" as const,
+      title: adminUser?.title || "Diretor de EHS & ESG",
+      department: "Corporate Compliance",
+      tenantId
+    };
+
+    res.status(201).json({
+      success: true,
+      message: "Empresa cadastrada e tenant isolado criado com sucesso!",
+      tenant: newTenant,
+      adminUser: createdAdmin,
+      activeModules: activeModules || []
+    });
+  } catch (err) {
+    console.error("Error registering company:", err);
+    res.status(500).json({ error: "Erro ao cadastrar empresa no servidor." });
+  }
+});
+
 // Create License
 app.post("/api/licenses", (req, res) => {
   const state = getDBState();

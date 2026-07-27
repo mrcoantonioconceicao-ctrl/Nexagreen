@@ -17,6 +17,7 @@ import ReportsTab from "./components/ReportsTab";
 import IntegrationsTab from "./components/IntegrationsTab";
 import AccessDenied from "./components/AccessDenied";
 import SettingsModal from "./components/SettingsModal";
+import LoginModal from "./components/LoginModal";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { 
   Tenant, 
@@ -34,7 +35,7 @@ import {
 import { RefreshCw, ShieldAlert, Cpu, Menu, ShieldCheck } from "lucide-react";
 
 function AppContent() {
-  const { hasPermission } = useAuth();
+  const { hasPermission, isAuthModalOpen, closeAuthModal, authModalInitialTab } = useAuth();
 
   // Global domain state loading
   const [dbState, setDbState] = useState<DBState | null>(null);
@@ -541,6 +542,17 @@ function AppContent() {
           }
         }}
         onResetDb={handleResetDatabase}
+      />
+
+      {/* Global Auth & Onboarding Modal (/register-company) */}
+      <LoginModal
+        isOpen={isAuthModalOpen}
+        onClose={closeAuthModal}
+        initialTab={authModalInitialTab}
+        onTenantCreated={async (newTenant) => {
+          await fetchDB();
+          setActiveTenantId(newTenant.id);
+        }}
       />
 
     </div>

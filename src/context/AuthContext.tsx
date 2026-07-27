@@ -76,7 +76,16 @@ const ROLE_PERMISSIONS: Record<UserRole, Record<string, boolean>> = {
 interface AuthContextType {
   currentUser: UserAccount;
   role: UserRole;
+  allUsers: UserAccount[];
+  isLoggedIn: boolean;
+  isAuthModalOpen: boolean;
+  authModalInitialTab: "login" | "register";
   switchUser: (userId: string) => void;
+  loginUser: (user: UserAccount) => void;
+  logout: () => void;
+  registerUser: (newUser: UserAccount) => void;
+  openAuthModal: (tab?: "login" | "register") => void;
+  closeAuthModal: () => void;
   hasPermission: (tabId: string) => boolean;
   getRoleBadgeColor: (role: UserRole) => string;
 }
@@ -84,13 +93,46 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [allUsers, setAllUsers] = useState<UserAccount[]>(DEMO_USERS);
   const [currentUser, setCurrentUser] = useState<UserAccount>(DEMO_USERS[0]);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(true);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [authModalInitialTab, setAuthModalInitialTab] = useState<"login" | "register">("login");
 
   const switchUser = (userId: string) => {
-    const selected = DEMO_USERS.find((u) => u.id === userId);
+    const selected = allUsers.find((u) => u.id === userId);
     if (selected) {
       setCurrentUser(selected);
+      setIsLoggedIn(true);
     }
+  };
+
+  const loginUser = (user: UserAccount) => {
+    setCurrentUser(user);
+    setIsLoggedIn(true);
+    setIsAuthModalOpen(false);
+  };
+
+  const logout = () => {
+    setIsLoggedIn(false);
+    setIsAuthModalOpen(true);
+    setAuthModalInitialTab("login");
+  };
+
+  const registerUser = (newUser: UserAccount) => {
+    setAllUsers((prev) => [...prev, newUser]);
+    setCurrentUser(newUser);
+    setIsLoggedIn(true);
+    setIsAuthModalOpen(false);
+  };
+
+  const openAuthModal = (tab: "login" | "register" = "login") => {
+    setAuthModalInitialTab(tab);
+    setIsAuthModalOpen(true);
+  };
+
+  const closeAuthModal = () => {
+    setIsAuthModalOpen(false);
   };
 
   const hasPermission = (tabId: string): boolean => {
@@ -117,7 +159,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         currentUser,
         role: currentUser.role,
+        allUsers,
+        isLoggedIn,
+        isAuthModalOpen,
+        authModalInitialTab,
         switchUser,
+        loginUser,
+        logout,
+        registerUser,
+        openAuthModal,
+        closeAuthModal,
         hasPermission,
         getRoleBadgeColor
       }}
