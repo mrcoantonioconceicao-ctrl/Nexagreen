@@ -1,6 +1,8 @@
 # NexaGreen Enterprise Suite (`nexagreen`)
 
-Plataforma corporativa de inteligência, governança ESG, inteligência preditiva e gestão de compliance ambiental para indústrias e grandes corporações.
+> **Desenvolvido e Mantido por NEXAVOR Technology & Innovation**
+
+Plataforma corporativa de inteligência, governança ESG, inteligência preditiva e gestão de compliance ambiental criada pela **NEXAVOR** para indústrias e grandes corporações.
 
 ---
 

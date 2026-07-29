@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { UserRole, Tenant } from "../types";
+import NexavorLogo from "./NexavorLogo";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -234,11 +235,9 @@ export default function LoginModal({ isOpen, onClose, onTenantCreated, initialTa
             <div>
               <div className="flex items-center space-x-2">
                 <span className="font-bold text-lg text-white tracking-tight">NexaGreen Enterprise</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  v2.0
-                </span>
+                <NexavorLogo variant="badge" size="sm" />
               </div>
-              <p className="text-xs text-slate-400">Portal Unificado de Autenticação & Onboarding Corporativo</p>
+              <p className="text-xs text-slate-400">Plataforma Ambiental & ESG Desenvolvida pela NEXAVOR</p>
             </div>
           </div>
           <button

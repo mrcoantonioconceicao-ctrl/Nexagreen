@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { Tenant } from "../types";
 import { useAuth, DEMO_USERS } from "../context/AuthContext";
+import NexavorLogo from "./NexavorLogo";
 
 interface SidebarProps {
   tenants: Tenant[];
@@ -98,12 +99,18 @@ export default function Sidebar({
               <ShieldCheck className="h-6 w-6" id="nexa-logo-icon" />
             </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
-                NexaGreen
+              <h1 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white flex items-center space-x-1.5">
+                <span>NexaGreen</span>
               </h1>
-              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 tracking-wider uppercase">
-                Enterprise Suite
-              </span>
+              <div className="flex items-center space-x-1.5">
+                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 tracking-wider uppercase">
+                  Enterprise Suite
+                </span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500">•</span>
+                <span className="text-[10px] font-extrabold tracking-widest text-cyan-500 uppercase">
+                  by NEXAVOR
+                </span>
+              </div>
             </div>
           </div>
 
@@ -309,6 +316,11 @@ export default function Sidebar({
           >
             Resetar DB
           </button>
+        </div>
+
+        {/* Nexavor Parent Brand Stamp */}
+        <div className="mt-4 pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-center">
+          <NexavorLogo variant="badge" size="sm" />
         </div>
       </div>
 
