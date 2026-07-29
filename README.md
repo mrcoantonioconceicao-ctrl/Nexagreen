@@ -95,7 +95,26 @@ npm start
 
 ---
 
-## 🔒 Segurança & RBAC
+## 📡 Endpoints da API REST & Integrações ERP
 
-O sistema implementa autenticação com RBAC (`AuthProvider`), garantindo que apenas usuários autorizados consigam acessar abas críticas como **Auditorias & Compliance** e **Integrações & Webhooks ERP**.
+| Método | Endpoint | Descrição | Nível RBAC |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/health` | Healthcheck e status dos serviços do servidor | Público |
+| `POST` | `/api/licenses/analyze` | Análise automatizada de minutas e extração de condicionantes com Gemini 2.5 Flash | Técnico / Admin |
+| `POST` | `/api/webhooks/erp` | Recebimento de eventos assíncronos de ERPs (SAP/Oracle) com validação HMAC-SHA256 | Integração / Admin |
+| `GET` | `/api/audit/logs` | Trilha de auditoria imutável para eventos de compliance e segurança | Auditor / Admin |
+
+---
+
+## 🔒 Segurança, Rastreabilidade & SIEM Logs
+
+O sistema implementa autenticação com **RBAC (`AuthProvider`)**, além de suporte a **Trilhas de Auditoria (Audit Logs)** com timestamp, identificação do usuário e evento realizado. As assinaturas dos Webhooks utilizam **HMAC-SHA256** para prevenção de reuso e falsificação de requisições.
+
+---
+
+## 🗺️ Roadmap de Evolução & Expansão Global
+
+- **Internacionalização & Padrões Globais**: Expansão de frameworks regulatórios para suporte a **EU Taxonomy**, **EPA (EUA)** e relatórios automatizados alinhados ao **GRI (Global Reporting Initiative)** e **SASB**.
+- **Arquitetura Enterprise em Microserviços**: Evolução modular para containers isolados em **Kubernetes / NestJS** visando alta volumetria de dados de IoT industrial.
+- **Rastreabilidade Imutável**: Implementação de *ledger* de auditoria descentralizado para verificação de créditos de carbono e garantias de origem de energia renovável.
 

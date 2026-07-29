@@ -217,6 +217,20 @@ export interface WebhookLog {
   status: "Success" | "Failed";
 }
 
+export interface SystemAuditLogEntry {
+  id: string;
+  tenantId: string;
+  action: string;
+  category: "Security" | "Compliance" | "ERP_Webhook" | "Document" | "License" | "AI_Analysis";
+  user: string;
+  userRole?: string;
+  details: string;
+  ipAddress?: string;
+  timestamp: string;
+  status: "Success" | "Warning" | "Failure";
+  hash?: string; // Cryptographic SHA-256 integrity hash
+}
+
 // Full Database State wrapper
 export interface DBState {
   tenants: Tenant[];
@@ -231,6 +245,7 @@ export interface DBState {
   documents: CorporateDocument[];
   webhooks?: WebhookConfig[];
   webhookLogs?: WebhookLog[];
+  auditLogs?: SystemAuditLogEntry[];
 }
 
 // RBAC & Authentication Types
