@@ -18,7 +18,13 @@ import {
   Save,
   CheckCircle,
   Clock,
-  Navigation
+  Navigation,
+  Upload,
+  X,
+  RefreshCw,
+  Image as ImageIcon,
+  Eye,
+  AlertCircle
 } from "lucide-react";
 import { Tenant, FieldInspectionReport } from "../types";
 
@@ -30,6 +36,9 @@ interface FieldAppSimulatorProps {
 
 export default function FieldAppSimulator({ tenant, onSubmitReport, reports }: FieldAppSimulatorProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // States
   const [offlineMode, setOfflineMode] = useState(false);
@@ -45,7 +54,12 @@ export default function FieldAppSimulator({ tenant, onSubmitReport, reports }: F
     { question: "Emissão visível de poeira / material particulado?", checked: false, note: "" }
   ]);
 
-  const [photoSnapped, setPhotoSnapped] = useState(false);
+  // Camera & Photo States
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [previewPhotoModal, setPreviewPhotoModal] = useState<string | null>(null);
+
   const [signatureDrawn, setSignatureDrawn] = useState(false);
   const [localQueue, setLocalQueue] = useState<any[]>([]);
   const [syncStatusMsg, setSyncStatusMsg] = useState("");
@@ -54,7 +68,7 @@ export default function FieldAppSimulator({ tenant, onSubmitReport, reports }: F
   const [isDrawing, setIsDrawing] = useState(false);
 
   useEffect(() => {
-    // Generate slight mock GPS variations for interest
+    // Generate slight mock GPS variations for realistic coordinates
     const interval = setInterval(() => {
       setGpsCoords(prev => ({
         lat: prev.lat + (Math.random() - 0.5) * 0.0001,
@@ -63,6 +77,117 @@ export default function FieldAppSimulator({ tenant, onSubmitReport, reports }: F
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // Cleanup camera stream on unmount
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  // Start live device camera stream
+  const startCamera = async () => {
+    setCameraError(null);
+    setIsCameraActive(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+    } catch (err: any) {
+      console.warn("Camera stream failed:", err);
+      setCameraError("Câmera não disponível no ambiente atual ou permissão negada. Você também pode enviar uma foto salva do seu dispositivo.");
+    }
+  };
+
+  // Stop live camera stream
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraActive(false);
+  };
+
+  // Capture current frame from video with GPS stamp
+  const capturePhotoFromVideo = () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Draw video frame
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Geotag watermark banner at bottom
+    const bannerHeight = Math.max(40, Math.floor(canvas.height * 0.12));
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, bannerHeight);
+
+    ctx.fillStyle = "#10b981"; // emerald
+    ctx.font = "bold 14px sans-serif";
+    ctx.fillText(`NexaField Geotag • GPS: ${gpsCoords.lat.toFixed(5)}, ${gpsCoords.lng.toFixed(5)}`, 12, canvas.height - (bannerHeight * 0.55));
+
+    ctx.fillStyle = "#e2e8f0";
+    ctx.font = "11px sans-serif";
+    ctx.fillText(`Local: ${locationName} | Data: ${new Date().toLocaleString("pt-BR")}`, 12, canvas.height - (bannerHeight * 0.2));
+
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+    setCapturedPhoto(dataUrl);
+    stopCamera();
+  };
+
+  // Handle uploaded photo from file input
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width || 800;
+        canvas.height = img.height || 600;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // Watermark stamp
+        const bannerHeight = Math.max(38, Math.floor(canvas.height * 0.09));
+        ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+        ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, bannerHeight);
+
+        ctx.fillStyle = "#10b981";
+        ctx.font = `bold ${Math.max(12, Math.floor(bannerHeight * 0.35))}px sans-serif`;
+        ctx.fillText(`NexaField Geotag • GPS: ${gpsCoords.lat.toFixed(5)}, ${gpsCoords.lng.toFixed(5)}`, 12, canvas.height - (bannerHeight * 0.5));
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = `${Math.max(10, Math.floor(bannerHeight * 0.28))}px sans-serif`;
+        ctx.fillText(`Local: ${locationName} | ${new Date().toLocaleString("pt-BR")}`, 12, canvas.height - (bannerHeight * 0.18));
+
+        setCapturedPhoto(canvas.toDataURL("image/jpeg", 0.85));
+        stopCamera();
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Clear signature board
   const clearSignature = () => {
@@ -135,6 +260,10 @@ export default function FieldAppSimulator({ tenant, onSubmitReport, reports }: F
   };
 
   const handleSaveReport = async () => {
+    const signatureDataUrl = signatureDrawn && canvasRef.current 
+      ? canvasRef.current.toDataURL("image/png") 
+      : undefined;
+
     // Collect report object
     const reportData = {
       tenantId: tenant.id,
@@ -143,8 +272,8 @@ export default function FieldAppSimulator({ tenant, onSubmitReport, reports }: F
       locationName,
       coordinates: gpsCoords,
       checklist,
-      photo: photoSnapped ? "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100' height='100' fill='%2310b981'/><text x='10' y='50' fill='white'>Foto Georreferenciada</text></svg>" : undefined,
-      signature: signatureDrawn ? "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAE=" : undefined
+      photo: capturedPhoto || undefined,
+      signature: signatureDataUrl
     };
 
     if (offlineMode) {
@@ -164,7 +293,7 @@ export default function FieldAppSimulator({ tenant, onSubmitReport, reports }: F
     }
 
     // Reset report interactive fields
-    setPhotoSnapped(false);
+    setCapturedPhoto(null);
     clearSignature();
   };
 
@@ -185,16 +314,59 @@ export default function FieldAppSimulator({ tenant, onSubmitReport, reports }: F
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-8" id="field-module-container">
+    <div className="p-6 lg:p-8 space-y-8 relative" id="field-module-container">
       
+      {/* Hidden File Input for Device Photo Upload */}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        accept="image/*" 
+        capture="environment"
+        onChange={handleFileUpload} 
+        className="hidden" 
+      />
+
+      {/* Lightbox Photo Preview Modal */}
+      {previewPhotoModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center space-x-2">
+                <Camera className="h-5 w-5 text-emerald-600" />
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white">Evidência Fotográfica Georreferenciada</h3>
+              </div>
+              <button 
+                onClick={() => setPreviewPhotoModal(null)}
+                className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-950 flex items-center justify-center max-h-[420px]">
+              <img src={previewPhotoModal} alt="Evidência Fotográfica" className="w-full h-auto object-contain max-h-[420px]" />
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                onClick={() => setPreviewPhotoModal(null)}
+                className="bg-slate-900 dark:bg-slate-800 hover:bg-black text-white text-xs font-bold px-4 py-2 rounded-xl"
+              >
+                Fechar Visualização
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-            Coleta e Fiscalização de Campo (Offline)
+            Coleta e Fiscalização de Campo (Offline & Câmera)
           </h2>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Ferramenta de conformidade de campo. Simule vistorias georreferenciadas com armazenamento offline temporário.
+            Ferramenta de conformidade ambiental. Capture fotos com GPS carimbado e envie vistorias em tempo real.
           </p>
         </div>
 
@@ -233,7 +405,7 @@ export default function FieldAppSimulator({ tenant, onSubmitReport, reports }: F
             </div>
 
             {/* Mobile App Canvas Screen */}
-            <div className="bg-white dark:bg-slate-900 rounded-[28px] overflow-hidden flex flex-col h-[640px] text-slate-850 z-10 pt-4 relative">
+            <div className="bg-white dark:bg-slate-900 rounded-[28px] overflow-hidden flex flex-col h-[660px] text-slate-850 z-10 pt-4 relative">
               
               {/* Header */}
               <div className="p-4 bg-emerald-600 text-white flex items-center justify-between shadow-md shrink-0">
@@ -288,34 +460,118 @@ export default function FieldAppSimulator({ tenant, onSubmitReport, reports }: F
                   </div>
                 </div>
 
-                {/* Snap Georeferenced Photo */}
+                {/* Camera & Georeferenced Photo Section */}
                 <div className="space-y-2">
-                  <h4 className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Mídia Fotográfica Georreferenciada</h4>
-                  <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-3 flex flex-col items-center justify-center space-y-2.5 bg-slate-50 dark:bg-slate-950/20 text-xs">
-                    {photoSnapped ? (
-                      <div className="space-y-1 text-center w-full">
-                        <div className="h-24 bg-emerald-100 dark:bg-emerald-950/30 border border-emerald-300 rounded-lg flex items-center justify-center font-bold text-emerald-800 text-[10px]">
-                          FOTO CAPTURADA COM SUCESSO
+                  <h4 className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Captura Fotográfica de Evidência</h4>
+                  
+                  <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-3 bg-slate-50 dark:bg-slate-950/20 text-xs space-y-2.5">
+                    
+                    {/* Live Camera View */}
+                    {isCameraActive ? (
+                      <div className="space-y-2">
+                        <div className="relative rounded-lg overflow-hidden border border-emerald-500/50 bg-black h-48 flex items-center justify-center">
+                          <video 
+                            ref={videoRef} 
+                            autoPlay 
+                            playsInline 
+                            muted 
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute top-2 left-2 bg-slate-900/80 text-emerald-400 text-[9px] font-mono font-bold px-2 py-0.5 rounded border border-emerald-500/40">
+                            GPS: {gpsCoords.lat.toFixed(4)}, {gpsCoords.lng.toFixed(4)}
+                          </div>
                         </div>
-                        <p className="text-[9px] text-slate-400 font-mono">GPS stamp: {gpsCoords.lat.toFixed(4)}, {gpsCoords.lng.toFixed(4)}</p>
-                        <button
-                          type="button"
-                          onClick={() => setPhotoSnapped(false)}
-                          className="text-[10px] text-red-500 font-bold hover:underline"
-                        >
-                          Apagar Foto
-                        </button>
+
+                        {cameraError && (
+                          <div className="p-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-lg text-[10px] text-amber-800 dark:text-amber-300 flex items-start space-x-1">
+                            <AlertCircle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
+                            <span>{cameraError}</span>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={capturePhotoFromVideo}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] py-2 rounded-lg font-bold flex items-center justify-center space-x-1"
+                          >
+                            <Camera className="h-3.5 w-3.5" />
+                            <span>Fotografar</span>
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={stopCamera}
+                            className="bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-700 dark:text-slate-300 text-[10px] py-2 rounded-lg font-bold flex items-center justify-center space-x-1"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                            <span>Cancelar</span>
+                          </button>
+                        </div>
+                      </div>
+                    ) : capturedPhoto ? (
+                      /* Captured Photo Preview */
+                      <div className="space-y-2">
+                        <div className="relative rounded-lg overflow-hidden border border-emerald-500/60 shadow-sm bg-slate-950 group">
+                          <img src={capturedPhoto} alt="Evidência do Ponto" className="w-full h-32 object-cover" />
+                          <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <button
+                              type="button"
+                              onClick={() => setPreviewPhotoModal(capturedPhoto)}
+                              className="bg-white/90 text-slate-900 p-1.5 rounded-full shadow"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center space-x-1">
+                            <CheckCircle className="h-3 w-3" />
+                            <span>Foto Carimbada com GPS</span>
+                          </span>
+
+                          <div className="flex space-x-2">
+                            <button
+                              type="button"
+                              onClick={startCamera}
+                              className="text-slate-600 dark:text-slate-400 font-bold hover:underline"
+                            >
+                              Refazer
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setCapturedPhoto(null)}
+                              className="text-red-500 font-bold hover:underline"
+                            >
+                              Remover
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => setPhotoSnapped(true)}
-                        className="bg-slate-900 dark:bg-slate-800 hover:bg-black text-white text-[10px] px-4 py-2 rounded-lg font-bold flex items-center space-x-1 cursor-pointer"
-                      >
-                        <Camera className="h-3.5 w-3.5" />
-                        <span>Capturar Foto do Ponto</span>
-                      </button>
+                      /* Camera Activation & Upload Buttons */
+                      <div className="space-y-2">
+                        <button
+                          type="button"
+                          onClick={startCamera}
+                          className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-black text-white text-[11px] py-2.5 rounded-lg font-bold flex items-center justify-center space-x-2 cursor-pointer shadow-sm"
+                        >
+                          <Camera className="h-4 w-4 text-emerald-400" />
+                          <span>Abrir Câmera do Dispositivo</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full bg-slate-100 dark:bg-slate-950/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] py-2 rounded-lg font-bold flex items-center justify-center space-x-1.5 border border-slate-200 dark:border-slate-800 cursor-pointer"
+                        >
+                          <Upload className="h-3.5 w-3.5 text-slate-500" />
+                          <span>Carregar Foto da Galeria</span>
+                        </button>
+                      </div>
                     )}
+
                   </div>
                 </div>
 
@@ -354,7 +610,7 @@ export default function FieldAppSimulator({ tenant, onSubmitReport, reports }: F
                 <button
                   type="button"
                   onClick={handleSaveReport}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 rounded-xl flex items-center justify-center space-x-1.5 shadow-md"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-3 rounded-xl flex items-center justify-center space-x-1.5 shadow-md cursor-pointer"
                 >
                   <Save className="h-4 w-4" />
                   <span>{offlineMode ? "Salvar Localmente" : "Transmitir Relatório"}</span>
@@ -466,15 +722,37 @@ export default function FieldAppSimulator({ tenant, onSubmitReport, reports }: F
                       </div>
                     </div>
 
-                    {/* Evidence and signature stamp */}
-                    <div className="flex items-center space-x-6 text-[10px] text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800">
-                      <div className="flex items-center space-x-1">
-                        <Camera className="h-3.5 w-3.5 text-slate-400" />
-                        <span>Foto Georreferenciada: <strong>Registrada</strong></span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <PenTool className="h-3.5 w-3.5 text-slate-400" />
-                        <span>Assinatura Digital: <strong>Simulada/Verificada</strong></span>
+                    {/* Photo Evidence & Signature Thumbnails */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-500">
+                      <div className="flex items-center space-x-3">
+                        {rep.photo ? (
+                          <div className="flex items-center space-x-2">
+                            {rep.photo.startsWith("data:image") ? (
+                              <button 
+                                onClick={() => setPreviewPhotoModal(rep.photo!)}
+                                className="flex items-center space-x-1.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 px-2 py-1 rounded-lg font-bold hover:underline"
+                              >
+                                <Camera className="h-3.5 w-3.5 text-emerald-600" />
+                                <span>Ver Foto Anexada</span>
+                              </button>
+                            ) : (
+                              <div className="flex items-center space-x-1">
+                                <Camera className="h-3.5 w-3.5 text-emerald-600" />
+                                <span>Foto Georreferenciada: Registrada</span>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-1 text-slate-400">
+                            <Camera className="h-3.5 w-3.5" />
+                            <span>Sem Foto</span>
+                          </div>
+                        )}
+
+                        <div className="flex items-center space-x-1">
+                          <PenTool className="h-3.5 w-3.5 text-slate-400" />
+                          <span>Assinatura Digital: {rep.signature ? "Completada" : "Pendente"}</span>
+                        </div>
                       </div>
                     </div>
 
@@ -491,3 +769,4 @@ export default function FieldAppSimulator({ tenant, onSubmitReport, reports }: F
     </div>
   );
 }
+

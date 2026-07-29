@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from "react";
+import jsPDF from "jspdf";
 import { 
   FileText, 
   Workflow, 
@@ -11,6 +12,7 @@ import {
   Save, 
   Plus, 
   CheckCircle, 
+  CheckCircle2,
   Clock, 
   User, 
   Calendar,
@@ -30,7 +32,10 @@ import {
   Upload,
   Printer,
   FileCode2,
-  Download
+  Download,
+  Loader2,
+  FileDown,
+  X
 } from "lucide-react";
 import { Tenant, CorporateDocument, ApprovalStep } from "../types";
 
@@ -322,9 +327,125 @@ export default function DocumentsTab({
     document.body.removeChild(link);
   };
 
+  const [isExportingDocPdf, setIsExportingDocPdf] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
   // Export Active Document as PDF
   const handleExportDocPdf = () => {
-    window.print();
+    if (!activeDoc) return;
+    try {
+      setIsExportingDocPdf(true);
+      setToastMessage("Gerando PDF do Parecer / Documento Criptografado...");
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+      });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      let currentY = 15;
+
+      // Header Banner Box
+      pdf.setFillColor(15, 23, 42); // slate-900
+      pdf.rect(0, 0, pageWidth, 28, "F");
+
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(11);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("NEXAGREEN CORPORATE — PARECER TÉCNICO REGULATÓRIO", margin, 12);
+
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(148, 163, 184);
+      pdf.text(`Organização: ${tenant.name} | CNPJ: ${tenant.cnpj} | Emissão: ${new Date().toLocaleDateString("pt-BR")}`, margin, 20);
+
+      currentY = 36;
+
+      // Doc Title
+      pdf.setFontSize(13);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(15, 23, 42);
+      pdf.text(activeDoc.title, margin, currentY);
+
+      currentY += 8;
+
+      // Metadata Card
+      pdf.setFillColor(248, 250, 252);
+      pdf.setDrawColor(226, 232, 240);
+      pdf.roundedRect(margin, currentY, pageWidth - (margin * 2), 22, 2, 2, "FD");
+
+      pdf.setFontSize(8);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(51, 65, 85);
+      pdf.text(`• Tipo de Documento: ${activeDoc.type}`, margin + 4, currentY + 6);
+      pdf.text(`• Versão Normativa: v${activeDoc.version}`, margin + 4, currentY + 11);
+      pdf.text(`• Autor / Elaborador: ${activeDoc.author || "Responsável Técnico"}`, margin + 4, currentY + 16);
+
+      pdf.text(`• SHA-256: 0x${(realCalculatedHash || "SHA-HASH").substring(0, 18)}...`, margin + 95, currentY + 6);
+      pdf.text(`• Integridade Criptográfica: ${isTampered ? "ALERTA DE VIOLAÇÃO" : "INTACTO & VERIFICADO"}`, margin + 95, currentY + 11);
+      pdf.text(`• Status de Aprovação: ${activeDoc.status}`, margin + 95, currentY + 16);
+
+      currentY += 28;
+
+      // Content Title
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(15, 23, 42);
+      pdf.text("Teor e Conteúdo do Parecer Técnico / Laudo:", margin, currentY);
+
+      currentY += 6;
+
+      pdf.setFontSize(8.5);
+      pdf.setFont("helvetica", "normal");
+      pdf.setTextColor(51, 65, 85);
+
+      const splitContent = pdf.splitTextToSize(activeDoc.content || "Sem conteúdo", pageWidth - (margin * 2));
+      pdf.text(splitContent, margin, currentY);
+
+      currentY += (splitContent.length * 4.5) + 12;
+
+      // Workflow & Signatures
+      if (currentY > pageHeight - 50) {
+        pdf.addPage();
+        currentY = 15;
+      }
+
+      pdf.setFontSize(10);
+      pdf.setFont("helvetica", "bold");
+      pdf.setTextColor(15, 23, 42);
+      pdf.text("Trilha de Aprovações e Assinaturas Digitais (ICP-Brasil RSA-2048):", margin, currentY);
+
+      currentY += 7;
+
+      (activeDoc.workflowSteps || []).forEach((step) => {
+        pdf.setFontSize(8);
+        if (step.status === "Approved") {
+          pdf.setFont("helvetica", "bold");
+          pdf.setTextColor(16, 185, 129);
+          pdf.text(`[✓ APROVADO & ASSINADO] ${step.role}: ${step.user} ${step.date ? `(${step.date})` : ""}`, margin, currentY);
+        } else {
+          pdf.setFont("helvetica", "normal");
+          pdf.setTextColor(100, 116, 139);
+          pdf.text(`[PENDENTE DE ASSINATURA] ${step.role}: ${step.user}`, margin, currentY);
+        }
+        currentY += 5;
+      });
+
+      const cleanTitle = (activeDoc.title || "Documento").replace(/[^a-zA-Z0-9]/g, "_");
+      pdf.save(`Parecer_${cleanTitle}_v${activeDoc.version}.pdf`);
+
+      setToastMessage("Documento PDF baixado com sucesso!");
+      setTimeout(() => setToastMessage(null), 4000);
+    } catch (err) {
+      console.error("Erro ao exportar PDF:", err);
+      setToastMessage("Imprimindo via navegação do sistema...");
+      window.print();
+    } finally {
+      setIsExportingDocPdf(false);
+    }
   };
 
   const handleTriggerCryptoSign = async (role: string, userName: string) => {
@@ -433,7 +554,18 @@ export default function DocumentsTab({
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-8" id="documents-module-container">
+    <div className="p-6 lg:p-8 space-y-8 relative" id="documents-module-container">
+      
+      {/* Toast Feedback Banner */}
+      {toastMessage && (
+        <div className="fixed top-5 right-5 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 border border-emerald-400 animate-bounce">
+          <CheckCircle2 className="h-5 w-5 text-white shrink-0" />
+          <span className="text-xs font-bold tracking-wide">{toastMessage}</span>
+          <button onClick={() => setToastMessage(null)} className="hover:opacity-80 p-1">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
       
       {/* Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -590,10 +722,15 @@ export default function DocumentsTab({
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={handleExportDocPdf}
-                      className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center space-x-1 cursor-pointer transition-all"
+                      disabled={isExportingDocPdf}
+                      className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center space-x-1.5 cursor-pointer transition-all disabled:opacity-50"
                     >
-                      <Printer className="h-3.5 w-3.5 text-emerald-600" />
-                      <span>PDF Executivo</span>
+                      {isExportingDocPdf ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-600" />
+                      ) : (
+                        <FileDown className="h-3.5 w-3.5 text-emerald-600" />
+                      )}
+                      <span>{isExportingDocPdf ? "Gerando..." : "Baixar PDF"}</span>
                     </button>
 
                     <button

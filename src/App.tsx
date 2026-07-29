@@ -331,6 +331,65 @@ function AppContent() {
     }
   };
 
+  const handleExportReportPdf = async (reportData: {
+    tenantId: string;
+    reportType?: string;
+    reportViewMode?: "executive" | "technical";
+    statusFilter?: string;
+  }) => {
+    console.log("[App.tsx] Iniciando requisição de exportação de PDF para o backend:", reportData);
+    try {
+      const response = await fetch("/api/reports/export-pdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reportData),
+      });
+
+      console.log(`[App.tsx] Resposta do backend recebida. Status HTTP: ${response.status} (${response.statusText})`);
+
+      if (!response.ok) {
+        let errorDetails = "";
+        try {
+          const errorJson = await response.json();
+          errorDetails = errorJson.error || errorJson.details || JSON.stringify(errorJson);
+        } catch {
+          errorDetails = await response.text();
+        }
+        console.error("[App.tsx] Erro retornado pelo servidor ao gerar PDF:", errorDetails);
+        throw new Error(`Falha no Servidor (${response.status}): ${errorDetails || response.statusText}`);
+      }
+
+      const contentType = response.headers.get("Content-Type");
+      console.log("[App.tsx] Content-Type retornado da API:", contentType);
+
+      const blob = await response.blob();
+      console.log(`[App.tsx] Dados binários (Blob PDF) recebidos com sucesso. Tamanho: ${blob.size} bytes.`);
+
+      if (blob.size === 0) {
+        throw new Error("O servidor retornou um arquivo PDF vazio (0 bytes).");
+      }
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      const modeName = reportData.reportViewMode === "technical" ? "Tecnico" : "Executivo";
+      const fileName = `Relatorio_NexaAmbient_${modeName}_${new Date().toISOString().split("T")[0]}.pdf`;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      console.log("[App.tsx] Download do PDF acionado no navegador com sucesso:", fileName);
+      return true;
+    } catch (error: any) {
+      console.error("[App.tsx] Erro durante a busca e download de PDF:", error);
+      throw error;
+    }
+  };
+
   // Safe checks for empty DB
   if (isFetchingInitial) {
     return (
@@ -502,6 +561,7 @@ function AppContent() {
             licenses={dbState.licenses}
             monitoringParams={dbState.monitoringParams}
             esgKpis={dbState.esgKpis}
+            onExportPdf={handleExportReportPdf}
           />
         )}
 

@@ -4,12 +4,15 @@
  */
 
 import React, { useState } from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import { 
   Printer, 
   FileSpreadsheet, 
   ShieldCheck, 
   Lock, 
   CheckCircle, 
+  CheckCircle2,
   Calendar, 
   Activity, 
   Building2, 
@@ -24,7 +27,10 @@ import {
   Sparkles,
   TrendingUp,
   BarChart3,
-  ShieldAlert
+  ShieldAlert,
+  Loader2,
+  FileDown,
+  X
 } from "lucide-react";
 import { Tenant, EnvironmentalLicense, MonitoringParam, EsgKpi } from "../types";
 
@@ -33,6 +39,12 @@ interface ReportsTabProps {
   licenses: EnvironmentalLicense[];
   monitoringParams: MonitoringParam[];
   esgKpis: EsgKpi[];
+  onExportPdf?: (data: {
+    tenantId: string;
+    reportType?: string;
+    reportViewMode?: "executive" | "technical";
+    statusFilter?: string;
+  }) => Promise<any>;
 }
 
 type ReportType = "licenses" | "monitoring" | "esg";
@@ -42,12 +54,15 @@ export default function ReportsTab({
   tenant,
   licenses,
   monitoringParams,
-  esgKpis
+  esgKpis,
+  onExportPdf
 }: ReportsTabProps) {
   const [selectedReport, setSelectedReport] = useState<ReportType>("licenses");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [reportViewMode, setReportViewMode] = useState<ReportViewMode>("executive");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Filter data based on active tenant
   const tenantLicenses = (licenses || []).filter(l => l && l.tenantId === tenant?.id);
@@ -212,24 +227,101 @@ export default function ReportsTab({
     }, 600);
   };
 
-  // Executive PDF print trigger
-  const handlePrintExecutivePdf = () => {
-    setReportViewMode("executive");
-    setTimeout(() => {
-      window.print();
-    }, 150);
-  };
+  // PDF Export Trigger using Backend API with client-side fallback
+  const handleExportPdf = async (targetMode?: ReportViewMode) => {
+    const activeMode = targetMode || reportViewMode;
+    if (targetMode) setReportViewMode(targetMode);
 
-  // Technical PDF print trigger
-  const handlePrintTechnicalPdf = () => {
-    setReportViewMode("technical");
-    setTimeout(() => {
-      window.print();
-    }, 150);
+    console.log("[ReportsTab] Clique no botão de exportação de PDF registrado.", {
+      tenantId: tenant.id,
+      reportType: selectedReport,
+      reportViewMode: activeMode,
+      statusFilter
+    });
+
+    try {
+      setIsExportingPdf(true);
+      setToastMessage(`Requisitando Relatório ${activeMode === "executive" ? "Executivo" : "Técnico"} em PDF ao servidor...`);
+
+      if (onExportPdf) {
+        console.log("[ReportsTab] Invocando handler de busca backend do App.tsx (onExportPdf)...");
+        await onExportPdf({
+          tenantId: tenant.id,
+          reportType: selectedReport,
+          reportViewMode: activeMode,
+          statusFilter
+        });
+        console.log("[ReportsTab] Requisição para o servidor backend e download concluídos com sucesso.");
+        setToastMessage("Relatório PDF exportado e baixado com sucesso!");
+      } else {
+        console.warn("[ReportsTab] Prop onExportPdf não fornecida. Executando renderização local com jsPDF/canvas.");
+        await new Promise((resolve) => setTimeout(resolve, 350));
+
+        const reportElem = document.getElementById("printable-audit-report");
+        if (!reportElem) {
+          throw new Error("Canvas do relatório não foi encontrado.");
+        }
+
+        const canvas = await html2canvas(reportElem, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          logging: false
+        });
+
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF({
+          orientation: "portrait",
+          unit: "mm",
+          format: "a4"
+        });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = pdfWidth;
+        const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+
+        while (heightLeft >= 20) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+          heightLeft -= pdfHeight;
+        }
+
+        const cleanName = (tenant.name || "Empresa").replace(/[^a-zA-Z0-9]/g, "_");
+        const filename = `Relatorio_${activeMode === "executive" ? "Executivo" : "Tecnico"}_${cleanName}_${new Date().toISOString().split("T")[0]}.pdf`;
+
+        pdf.save(filename);
+        setToastMessage("Relatório PDF gerado localmente e baixado com sucesso!");
+      }
+    } catch (err: any) {
+      console.error("[ReportsTab] Erro ao exportar relatório PDF:", err);
+      setToastMessage(`Erro ao exportar PDF: ${err.message || "Falha na requisição"}`);
+    } finally {
+      setIsExportingPdf(false);
+      setTimeout(() => setToastMessage(null), 5000);
+    }
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-8" id="reports-module-container">
+    <div className="p-6 lg:p-8 space-y-8 relative" id="reports-module-container">
+      
+      {/* Toast Feedback Banner */}
+      {toastMessage && (
+        <div className="fixed top-5 right-5 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-3 border border-emerald-400 animate-bounce">
+          <CheckCircle2 className="h-5 w-5 text-white shrink-0" />
+          <span className="text-xs font-bold tracking-wide">{toastMessage}</span>
+          <button onClick={() => setToastMessage(null)} className="hover:opacity-80 p-1">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
       
       {/* Dynamic CSS Print Styles Injector to ensure pixel-perfect PDF export on mobile and PC */}
       <style dangerouslySetInnerHTML={{ __html: `
@@ -422,11 +514,24 @@ export default function ReportsTab({
               </div>
 
               <button
-                onClick={handlePrintExecutivePdf}
-                className="w-full bg-slate-900 hover:bg-black dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-extrabold text-xs py-2.5 rounded-xl uppercase flex items-center justify-center space-x-2 shadow-sm transition-all cursor-pointer"
+                onClick={() => handleExportPdf()}
+                disabled={isExportingPdf || isGenerating}
+                className="w-full bg-slate-900 hover:bg-black dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-extrabold text-xs py-3 rounded-xl uppercase flex items-center justify-center space-x-2 shadow-md transition-all cursor-pointer disabled:opacity-50"
               >
-                <Printer className="h-4 w-4" />
-                <span>Exportar PDF Executivo (Conselho)</span>
+                {isExportingPdf ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-white" />
+                ) : (
+                  <FileDown className="h-4 w-4 text-emerald-400" />
+                )}
+                <span>{isExportingPdf ? "Gerando Arquivo PDF..." : "Baixar Relatório PDF (A4 Oficial)"}</span>
+              </button>
+
+              <button
+                onClick={() => window.print()}
+                className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs py-2 rounded-xl flex items-center justify-center space-x-2 transition-all cursor-pointer"
+              >
+                <Printer className="h-3.5 w-3.5 text-slate-500" />
+                <span>Imprimir / Salvar via Navegador</span>
               </button>
 
               <button
