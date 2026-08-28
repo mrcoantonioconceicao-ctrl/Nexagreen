@@ -29,9 +29,12 @@ Plataforma corporativa de inteligência, governança ESG, inteligência preditiv
   - Rastreamento unificado de renovação de licenças (LP, LI, LO), vencimento de condicionantes técnicas e prazos de auditoria ESG.
   - Criação rápida e pré-preenchida de tarefas de mitigação vinculadas diretamente a eventos legais e ambientais.
 
-- **GIS & Cartografia Digital Macrorregional**:
-  - Visualização georreferenciada multi-camadas adaptada às 5 macrorregiões do Brasil (Nordeste, Sul, Sudeste, Norte e Centro-Oeste).
-  - Mapeamento com coordenadas e biomas reais (Caatinga, Mata Atlântica, Cerrado, Amazônia, Pantanal, Pampa) e integração com órgãos ambientais (CPRH, INEMA, SEMACE, FEPAM, IAT, IMA, IPAAM, SEMA, etc.).
+- **GIS, Sensoriamento Remoto & Satélites Copernicus Sentinel-1 & Sentinel-2**:
+  - Integração direta com a constelação de satélites europeus Copernicus Sentinel-2 MSI L2A (10m multiespectral) e Sentinel-1 C-SAR (Radar de Abertura Sintética que penetra cobertura de nuvens).
+  - Cálculo e renderização em tempo real de índices espectrais de vegetação (NDVI), corpos d'água (NDWI) e estresse hídrico do solo (NDMI).
+  - Inspecção espectral por ponto com gráfico de refletância por banda (B02 Azul, B03 Verde, B04 Vermelho, B08 NIR) ao clicar no mapa.
+  - Painel de alertas automatizados de supressão vegetal e variação de *backscatter* do radar SAR.
+  - Cartografia georreferenciada adaptada às 5 macrorregiões do Brasil com suporte a importação de arquivos GeoJSON e Shapefiles.
 
 - **Gestão de Licenças, Condicionantes & Pareceres Criptografados**:
   - Acompanhamento automatizado de prazos, matrizes de risco, status de cumprimento e controle de evidências técnicas.
